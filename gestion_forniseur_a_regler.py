@@ -1,11 +1,14 @@
 # gestion_forniseur_a_regler.py
 
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QVBoxLayout, QHBoxLayout, QFileDialog
 from ui.ui_gestion_forniseur_a_regler import Ui_Dialog
 from database import DatabaseManager
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 class GestionFournisseurARegler(QDialog):
     def __init__(self):
@@ -37,7 +40,6 @@ class GestionFournisseurARegler(QDialog):
         self.ui.tableWidget_a_regler.setColumnWidth(1, 100)  # Colonne Date
         self.ui.tableWidget_a_regler.setColumnWidth(2, 185)  # Colonne Fournisseur
         self.ui.tableWidget_a_regler.setColumnWidth(3, 80)   # Colonne TTC
-
 
     def load_depenses(self):
         """Charge les dépenses dans le tableau où la validation n'est pas 'Oui'."""
@@ -110,41 +112,66 @@ class GestionFournisseurARegler(QDialog):
         query = "SELECT id, date, fournisseur, ttc FROM depenses WHERE validation != 'Oui'"
         rows = self.db_manager.fetch_all(query)
 
-        pdf_file = "fournisseur_a_regler.pdf"  # Nom du fichier PDF
-        c = canvas.Canvas(pdf_file, pagesize=letter)
-        width, height = letter
+        # Définir un nom de fichier par défaut
+        default_filename = "fournisseur_a_regler.pdf"
+
+        # Ouvrir un dialogue pour choisir l'emplacement et le nom du fichier PDF
+        options = QFileDialog.Options()
+        pdf_file, _ = QFileDialog.getSaveFileName(self, "Enregistrer le PDF", default_filename, "PDF Files (*.pdf);;All Files (*)", options=options)
+
+        if not pdf_file:  # Vérifier si l'utilisateur a annulé le dialogue
+            return
+
+        doc = SimpleDocTemplate(pdf_file, pagesize=letter)
+
+        # Styles pour le PDF
+        styles = getSampleStyleSheet()
+        elements = []
 
         # Ajouter le titre
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(100, height - 50, "Dépenses à Régler")
+        title = Paragraph("Dépenses à Régler", styles['Title'])
+        elements.append(title)
+        elements.append(Spacer(1, 12))  # Espacement après le titre
 
-        # Ajouter les en-têtes de colonnes
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(50, height - 100, "ID")
-        c.drawString(150, height - 100, "Date")
-        c.drawString(250, height - 100, "Fournisseur")
-        c.drawString(400, height - 100, "TTC")
-
-        # Ajouter les lignes de données
-        c.setFont("Helvetica", 12)
-        y_position = height - 120
+        # Créer les données pour le tableau
+        data = [['ID', 'Date', 'Fournisseur', 'TTC']]
         total_ttc = 0.0  # Initialiser le total TTC
 
         for row in rows:
-            c.drawString(50, y_position, str(row[0]))  # ID
-            c.drawString(150, y_position, row[1])       # Date
-            c.drawString(250, y_position, row[2])       # Fournisseur
-            c.drawString(400, y_position, f"{row[3]:,.2f} €")  # TTC
+            data.append([
+                str(row[0]),  # ID
+                row[1],       # Date
+                row[2],       # Fournisseur
+                f"{row[3]:,.2f} €"  # TTC
+            ])
             total_ttc += float(row[3])  # Ajouter au total TTC
-            y_position -= 20  # Déplacer vers le bas pour la prochaine ligne
 
-        # Ajouter le total
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(50, y_position, "Total TTC :")  # Label pour le total
-        c.drawString(150, y_position, f"{total_ttc:,.2f} €")  # Valeur totale
+        # Ajouter le total à la fin des données
+        data.append(['', '', 'Total TTC :', f"{total_ttc:,.2f} €"])
+
+        # Créer le tableau
+        table = Table(data, colWidths=[50, 100, 185, 80])  # Ajuster les largeurs des colonnes
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),  # Couleur d'arrière-plan pour l'en-tête
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Couleur du texte pour l'en-tête
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Alignement du texte
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Police pour l'en-tête
+            ('FONTSIZE', (0, 0), (-1, 0), 12),  # Taille de police pour l'en-tête
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Espacement en bas de l'en-tête
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),  # Grille autour des cellules
+            ('ALIGN', (2, 0), (2, -1), 'RIGHT'),  # Alignement à droite pour la colonne TTC
+            ('FONTSIZE', (0, 0), (-1, -1), 10),  # Taille de police pour le reste
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),  # Espacement à gauche
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),  # Espacement à droite
+            ('TOPPADDING', (0, 0), (-1, -1), 4),  # Espacement en haut
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),  # Espacement en bas
+        ]))
+
+        # Ajouter le tableau au PDF
+        elements.append(table)
 
         # Sauvegarder le PDF
-        c.save()
+        doc.build(elements)
         QMessageBox.information(self, "Succès", f"PDF généré : {pdf_file}")
 
 if __name__ == "__main__":
