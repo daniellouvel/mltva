@@ -1,0 +1,16 @@
+projet/
+│
+├── fichiers_ui_qt/          # Répertoire contenant les fichiers .ui
+│   ├── main_window.ui
+│   └── gestion_depenses.ui
+│
+├── ui/                      # Répertoire pour les fichiers Python générés
+│   ├── ui_main_window.py
+│   └── ui_gestion_depenses.py
+│
+├── data                     # Répertoire pour la bdd
+|      └── mlbdd.db
+|
+├── database.py              # Gestion de la base de données
+├── main.py                  # Logique principale de l'application
+└── gestion_depenses.py      # Interface utilisateur pour la gestion des dépenses

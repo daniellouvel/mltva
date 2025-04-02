@@ -1,0 +1,114 @@
+Voici le contenu complet du fichier, prêt à être copié et enregistré dans un seul fichier. Vous pouvez simplement copier tout ce qui suit et l'enregistrer dans un fichier texte (par exemple, prompt_complet.txt) ou un fichier Markdown (par exemple, prompt_complet.md).
+
+Prompt Complet : Générer des Requêtes SQL d'Insertion pour les Tables depenses et recettes
+Instructions pour L'Assistant
+Je souhaite générer des requêtes SQL pour insérer des données dans deux tables : depenses et recettes. Voici les détails nécessaires :
+
+Structure des Tables
+Table depenses :
+CREATE TABLE depenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    fournisseur TEXT NOT NULL,
+    ttc REAL NOT NULL,
+    tva_id INTEGER NOT NULL,
+    montant_tva REAL NOT NULL,
+    validation TEXT NOT NULL,
+    commentaire TEXT
+);
+
+able recettes :
+
+CREATE TABLE recettes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    client TEXT NOT NULL,
+    paiement TEXT NOT NULL,
+    numero_facture TEXT NOT NULL,
+    montant REAL NOT NULL,
+    tva INTEGER NOT NULL,
+    montant_tva REAL NOT NULL,
+    commentaire TEXT
+);
+
+Données Brutes
+Fournissez-moi les données brutes sous forme de tableau ou de liste. Les colonnes doivent inclure :
+Pour depenses : id, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire.
+Pour recettes : id, date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire.
+Format des Données
+Assurez-vous que les données respectent les règles suivantes :
+Dates : Converties au format YYYY-MM-DD.
+Valeurs numériques : Utiliser un point (.) comme séparateur décimal (pas de symboles comme € ou ,).
+Apostrophes : Échapper les apostrophes en doublant-les ('').
+Requêtes SQL Attendues
+Générez les requêtes SQL d'insertion pour chaque table. Les requêtes doivent être prêtes à copier-coller dans un environnement SQLite.
+Validation des Données
+Ajoutez une section finale avec des requêtes SQL pour valider les données insérées :
+SELECT * FROM depenses;
+SELECT * FROM recettes;
+
+Exemple de Sortie Attendue
+Voici un exemple de la structure attendue pour les requêtes générées :
+INSERT INTO depenses (id, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
+VALUES
+(1, '2025-03-01', 'Fournisseur A', 100.00, 20, 20.00, 'validé', 'Commentaire'),
+(2, '2025-03-02', 'Fournisseur B', 200.00, 10, 20.00, 'non validé', '');
+
+INSERT INTO recettes (id, date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire)
+VALUES
+(1, '2025-03-01', 'Client A', 'chèque', 'FACTURE-001', 500.00, 20, 100.00, ''),
+(2, '2025-03-02', 'Client B', 'VIR', 'FACTURE-002', 1000.00, 10, 100.00, '');
+
+Adaptabilité
+Si je fournis des données supplémentaires ou des modifications à la structure des tables, adaptez les requêtes en conséquence.
+
+Exemple de Données Brutes (à Copier-Coller)
+Table depenses
+62
+04/03/2025
+NORAUTO
+49,97 €
+20
+8,33 €
+validé
+CB
+63
+05/03/2025
+SFR MOBILE
+45,13 €
+20
+7,52 €
+validé
+Prélèvement
+
+Table recettes
+23
+05/03/2025
+LEPRETRE
+chèque
+2025-1359
+1 003,77 €
+5.5
+40,17 €
+24
+05/03/2025
+LECLERC
+VIR
+2025-1376
+2 528,46 €
+10
+229,86 €
+
+Résultat Attendu
+L'assistant doit générer des requêtes SQL prêtes à copier-coller, comme suit :
+-- Insertion dans la table `depenses`
+INSERT INTO depenses (id, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
+VALUES
+(62, '2025-03-04', 'NORAUTO', 49.97, 20, 8.33, 'validé', 'CB'),
+(63, '2025-03-05', 'SFR MOBILE', 45.13, 20, 7.52, 'validé', 'Prélèvement');
+
+-- Insertion dans la table `recettes`
+INSERT INTO recettes (id, date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire)
+VALUES
+(23, '2025-03-05', 'LEPRETRE', 'chèque', '2025-1359', 1003.77, 5.5, 40.17, ''),
+(24, '2025-03-05', 'LECLERC', 'VIR', '2025-1376', 2528.46, 10, 229.86, '');

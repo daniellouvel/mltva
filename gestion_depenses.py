@@ -1,0 +1,566 @@
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox
+from PySide6.QtCore import Qt, QEvent, QDate
+from ui.ui_gestion_depenses import Ui_Dialog
+from util import (
+    PeriodeManager,
+    convert_month_to_number,
+    calculate_tva,
+    validate_fields,
+    update_button_color,
+    configure_fournisseur_combobox,
+    handle_exception,
+)
+from database import DatabaseManager
+from datetime import datetime, timedelta  # Correction : Ajout de timedelta
+from constants import ERROR_MESSAGES, UI_CONFIG, VALIDATION_MESSAGES
+
+# Configuration des colonnes du tableau
+TABLE_COLUMNS = {
+    "REPERE": 0,
+    "DATE": 1,
+    "FOURNISSEUR": 2,
+    "TTC": 3,
+    "TVA_RATE": 4,
+    "TVA_AMOUNT": 5,
+    "VALIDATION": 6,
+    "COMMENTAIRE": 7
+}
+
+# Largeurs des colonnes
+COLUMN_WIDTHS = {
+    TABLE_COLUMNS["REPERE"]: 50,
+    TABLE_COLUMNS["DATE"]: 100,
+    TABLE_COLUMNS["FOURNISSEUR"]: 185,
+    TABLE_COLUMNS["TTC"]: 80,
+    TABLE_COLUMNS["TVA_RATE"]: 80,
+    TABLE_COLUMNS["TVA_AMOUNT"]: 100,
+    TABLE_COLUMNS["VALIDATION"]: 80,
+    TABLE_COLUMNS["COMMENTAIRE"]: 400
+}
+
+# En-têtes des colonnes
+COLUMN_HEADERS = [
+    "Repère", "Date", "Fournisseur", "TTC", "Taux TVA", "Montant TVA", "Validation", "Commentaire"
+]
+
+class GestionDepenses(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+
+        # Initialisation des attributs
+        self.selected_row_id = None
+        self.periode_manager = PeriodeManager()
+        self.mois, self.annee = self.periode_manager.get_periode()
+        self.db_manager = DatabaseManager("data/mlbdd.db")
+
+        # Configuration de l'interface
+        self._setup_ui()
+        
+        # Chargement des données
+        self.load_periode()
+        self.load_depenses()
+
+    def _setup_ui(self):
+        """Configure l'interface utilisateur."""
+        # Configuration du tableau
+        self.configure_table()
+
+        # Configuration du calendrier
+        self.ui.calendarWidget.setVisible(UI_CONFIG["CALENDAR_VISIBLE"])
+        self.ui.lineEditDate.mousePressEvent = self.show_calendar_on_focus
+        self.ui.calendarWidget.clicked.connect(self.on_calendar_date_clicked)
+        
+        # Réinitialisation du champ de date
+        self.ui.lineEditDate.clear()
+
+        # Configuration des combobox
+        configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
+        self.ui.comboBoxTVA.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])
+
+        # Connexion des boutons
+        self._connect_buttons()
+
+        # Connexion des événements
+        self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
+        self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
+        self.ui.lineEditMontant_2.textChanged.connect(self.calculate_tva_2)
+        self.ui.comboBoxTVA_2.currentTextChanged.connect(self.calculate_tva_2)
+        self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
+        self.ui.checkBox2emeLigne.stateChanged.connect(self.toggle_saisie_2eme_ligne)
+
+        # Configuration initiale
+        self.ui.Saisie2em2ligne.setVisible(False)
+
+        # Configuration des boutons par défaut
+        self.ui.pushButtonValider.setDefault(True)
+        self.ui.quitterButton.setAutoDefault(False)
+        self.ui.quitterButton.setDefault(False)
+
+        # Désactivation de la fermeture avec la touche Entrée
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        self.setModal(True)
+
+        # Installation d'un filtre d'événements pour tous les widgets
+        self.installEventFilter(self)
+
+        # Initialisation du champ de TVA en lecture seule
+        self.ui.lineEditMontantTVA.setReadOnly(True)
+
+    def _connect_buttons(self):
+        """Connecte tous les boutons de l'interface."""
+        button_connections = {
+            "quitterButton": self.close,
+            "pushButtonValider": self.add_new_row,
+            "pushButtonModifier": self.update_row,
+            "pushButtonSuprimer": self.delete_row,
+            "pushButtonEffacer": self.clear_fields
+        }
+
+        for button_name, callback in button_connections.items():
+            if hasattr(self.ui, button_name):
+                getattr(self.ui, button_name).clicked.connect(callback)
+            else:
+                print(f"Erreur : Le bouton '{button_name}' n'existe pas dans le fichier .ui.")
+
+    def configure_table(self):
+        """Configure les en-têtes et les largeurs des colonnes du tableau."""
+        try:
+            self.ui.tableWidget.setColumnCount(len(COLUMN_HEADERS))
+            self.ui.tableWidget.setHorizontalHeaderLabels(COLUMN_HEADERS)
+            self.ui.tableWidget.verticalHeader().setVisible(False)
+            self.set_column_widths()
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la configuration du tableau")
+
+    def set_column_widths(self):
+        """Définit une largeur fixe pour chaque colonne."""
+        try:
+            for col, width in COLUMN_WIDTHS.items():
+                self.ui.tableWidget.setColumnWidth(col, width)
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la définition des largeurs de colonnes")
+
+    def toggle_saisie_2eme_ligne(self):
+        """Affiche ou masque le cadre Saisie2em2ligne."""
+        try:
+            is_checked = self.ui.checkBox2emeLigne.isChecked()
+            self.ui.Saisie2em2ligne.setVisible(is_checked)
+
+            # Désactiver/activer le calcul automatique de la TVA
+            if is_checked:
+                # Désactiver les connexions pour le calcul de TVA
+                self.ui.lineEditMontant.textChanged.disconnect(self.calculate_tva)
+                self.ui.comboBoxTVA.currentTextChanged.disconnect(self.calculate_tva)
+                self.ui.lineEditMontant_2.textChanged.disconnect(self.calculate_tva_2)
+                self.ui.comboBoxTVA_2.currentTextChanged.disconnect(self.calculate_tva_2)
+                # Initialiser le montant de la deuxième ligne à 0
+                self.ui.lineEditMontant_2.setText("0")
+                # Rendre le champ de TVA modifiable
+                self.ui.lineEditMontantTVA.setReadOnly(False)
+            else:
+                # Réactiver les connexions pour le calcul de TVA
+                self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
+                self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
+                self.ui.lineEditMontant_2.textChanged.connect(self.calculate_tva_2)
+                self.ui.comboBoxTVA_2.currentTextChanged.connect(self.calculate_tva_2)
+                # Rendre le champ de TVA non modifiable
+                self.ui.lineEditMontantTVA.setReadOnly(True)
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la modification de la visibilité de la deuxième ligne")
+
+    def load_periode(self):
+        """Charge et affiche la période actuelle."""
+        try:
+            self.ui.moisLabel.setText(self.mois)
+            self.ui.anneeLabel.setText(str(self.annee))
+            self.selected_month = convert_month_to_number(self.mois)
+            self.selected_year = int(self.annee)
+            # On ne configure plus le calendrier ici
+        except Exception as e:
+            handle_exception(e, "Erreur lors du chargement de la période")
+
+    def configure_calendar(self):
+        """Configure le calendrier pour restreindre les dates à la période sélectionnée."""
+        try:
+            start_date = datetime(self.selected_year, self.selected_month, 1)
+            end_date = (
+                datetime(self.selected_year + 1, 1, 1)
+                if self.selected_month == 12
+                else datetime(self.selected_year, self.selected_month + 1, 1)
+            )
+            self.ui.calendarWidget.setMinimumDate(start_date)
+            self.ui.calendarWidget.setMaximumDate(end_date)
+            # On ne définit pas de date par défaut
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la configuration du calendrier")
+
+    def show_calendar_on_focus(self, event):
+        """Affiche le calendrier lorsque le champ de date est cliqué."""
+        try:
+            # Configuration des dates minimum et maximum pour la période sélectionnée
+            start_date = QDate(self.selected_year, self.selected_month, 1)
+            
+            # Calcul de la date de fin (dernier jour du mois)
+            if self.selected_month == 12:
+                end_date = QDate(self.selected_year, 12, 31)
+            else:
+                # On prend le premier jour du mois suivant et on soustrait 1 jour
+                next_month = QDate(self.selected_year, self.selected_month + 1, 1)
+                end_date = next_month.addDays(-1)
+            
+            # Configuration des dates
+            self.ui.calendarWidget.setMinimumDate(start_date)
+            self.ui.calendarWidget.setMaximumDate(end_date)
+            
+            # Affichage du calendrier
+            self.ui.calendarWidget.setVisible(True)
+            
+        except Exception as e:
+            handle_exception(e, "Erreur lors de l'affichage du calendrier")
+
+    def on_calendar_date_clicked(self, date):
+        """Gère le clic sur une date dans le calendrier."""
+        try:
+            formatted_date = f"{date.day():02d}/{date.month():02d}/{date.year()}"
+            self.ui.lineEditDate.setText(formatted_date)
+            self.ui.calendarWidget.setVisible(False)
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la sélection de la date")
+
+    def load_depenses(self):
+        """Charge les dépenses pour la période sélectionnée et calcule les totaux."""
+        try:
+            mois_numerique = convert_month_to_number(self.mois)
+            query = """
+            SELECT id, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire
+            FROM depenses
+            WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
+            """
+            rows = self.db_manager.fetch_all(query, (f"{mois_numerique:02d}", self.annee))
+            
+            self.ui.tableWidget.setRowCount(0)
+            total_ttc = 0.0
+            total_montant_tva = 0.0
+
+            for row_number, row_data in enumerate(rows):
+                self.ui.tableWidget.insertRow(row_number)
+                for column_number, data in enumerate(row_data):
+                    if column_number == TABLE_COLUMNS["DATE"] and isinstance(data, str):
+                        try:
+                            # Conversion de la date du format YYYY-MM-DD vers DD/MM/YYYY
+                            date_obj = datetime.strptime(data, "%Y-%m-%d")
+                            data = date_obj.strftime("%d/%m/%Y")
+                        except ValueError:
+                            pass
+                    
+                    item = QTableWidgetItem(str(data or ""))
+                    
+                    # Coloration de la validation
+                    if column_number == TABLE_COLUMNS["VALIDATION"]:
+                        if data == "Non":
+                            item.setForeground(Qt.red)
+                        elif data == "Oui":
+                            item.setForeground(Qt.green)
+                    
+                    self.ui.tableWidget.setItem(row_number, column_number, item)
+                    
+                    if column_number == TABLE_COLUMNS["TTC"]:
+                        total_ttc += float(data or 0)
+                    elif column_number == TABLE_COLUMNS["TVA_AMOUNT"]:
+                        total_montant_tva += float(data or 0)
+
+            self.update_totals(total_ttc, total_montant_tva)
+        except Exception as e:
+            handle_exception(e, "Erreur lors du chargement des dépenses")
+
+    def update_totals(self, total_ttc, total_montant_tva):
+        """Met à jour les champs de texte avec les totaux calculés."""
+        try:
+            self.ui.lineEdittotalttc.setText(f"{total_ttc:.2f}")
+            self.ui.lineEditmontanttva.setText(f"{total_montant_tva:.2f}")
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la mise à jour des totaux")
+
+    def calculate_tva(self):
+        """Calcule le montant de la TVA à partir du montant TTC et du taux de TVA."""
+        try:
+            montant_tva = calculate_tva(self.ui.lineEditMontant.text(), self.ui.comboBoxTVA.currentText())
+            if montant_tva is not None:
+                self.ui.lineEditMontantTVA.setText(f"{montant_tva:.2f}")
+            else:
+                self.ui.lineEditMontantTVA.setText("")
+        except Exception as e:
+            handle_exception(e, "Erreur lors du calcul de la TVA")
+
+    def calculate_tva_2(self):
+        """Calcule le montant de la TVA pour la deuxième ligne."""
+        try:
+            montant_tva = calculate_tva(self.ui.lineEditMontant_2.text(), self.ui.comboBoxTVA_2.currentText())
+            if montant_tva is not None:
+                self.ui.lineEditMontantTVA_2.setText(f"{montant_tva:.2f}")
+            else:
+                self.ui.lineEditMontantTVA_2.setText("")
+        except Exception as e:
+            handle_exception(e, "Erreur lors du calcul de la TVA de la deuxième ligne")
+
+    def validate_fields(self):
+        """Vérifie si tous les champs obligatoires sont remplis."""
+        try:
+            required_fields = [
+                self.ui.lineEditDate.text(),
+                self.ui.comboBoxFournisseur.currentText(),
+                self.ui.lineEditMontant.text(),
+                self.ui.comboBoxTVA.currentText(),
+                self.ui.lineEditMontantTVA.text(),
+            ]
+            
+            if not validate_fields(*required_fields):
+                QMessageBox.warning(self, "Attention", ERROR_MESSAGES["MISSING_FIELDS"])
+                return False
+                
+            return True
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la validation des champs")
+            return False
+
+    def _get_depense_data(self):
+        """Récupère et valide les données de dépense depuis l'interface."""
+        try:
+            date_text = self.ui.lineEditDate.text()
+            fournisseur = self.ui.comboBoxFournisseur.currentText()
+            ttc_text = self.ui.lineEditMontant.text()
+            tva_rate_text = self.ui.comboBoxTVA.currentText()
+            montant_tva_text = self.ui.lineEditMontantTVA.text()
+            commentaire = self.ui.lineEditComentaire.text()
+            validation = "Oui" if self.ui.checkBoxValidation.isChecked() else "Non"
+
+            # Validation des données
+            if not ttc_text.replace('.', '', 1).isdigit():
+                raise ValueError(ERROR_MESSAGES["INVALID_AMOUNT"])
+            if not tva_rate_text.endswith('%'):
+                raise ValueError(ERROR_MESSAGES["INVALID_TVA"])
+
+            # Conversion des données
+            date_obj = datetime.strptime(date_text, "%d/%m/%Y")
+            formatted_date = date_obj.strftime("%Y-%m-%d")
+            ttc = float(ttc_text)
+            tva_rate = float(tva_rate_text.strip('%'))
+            montant_tva = float(montant_tva_text)
+
+            return formatted_date, fournisseur, ttc, tva_rate, montant_tva, validation, commentaire
+        except ValueError as e:
+            QMessageBox.warning(self, "Attention", str(e))
+            return None
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la récupération des données")
+            return None
+
+    def _get_second_line_data(self):
+        """Récupère et valide les données de la deuxième ligne."""
+        try:
+            date_text = self.ui.lineEditDate.text()
+            fournisseur = self.ui.comboBoxFournisseur.currentText()
+            ttc_2 = float(self.ui.lineEditMontant_2.text())
+            tva_rate_2 = float(self.ui.comboBoxTVA_2.currentText().strip('%'))
+            montant_tva_2 = float(self.ui.lineEditMontantTVA_2.text())
+            commentaire_2 = self.ui.lineEditComentaire_2.text()
+            validation_2 = "Oui" if self.ui.checkBoxValidation_2.isChecked() else "Non"
+
+            # Conversion de la date
+            date_obj = datetime.strptime(date_text, "%d/%m/%Y")
+            formatted_date = date_obj.strftime("%Y-%m-%d")
+            
+            return formatted_date, fournisseur, ttc_2, tva_rate_2, montant_tva_2, validation_2, commentaire_2
+        except ValueError as e:
+            QMessageBox.warning(self, "Attention", str(e))
+            return None
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la récupération des données de la deuxième ligne")
+            return None
+
+    def _validate_second_line(self):
+        """Valide les données de la deuxième ligne."""
+        try:
+            required_fields = [
+                self.ui.lineEditMontant_2.text(),
+                self.ui.comboBoxTVA_2.currentText(),
+                self.ui.lineEditMontantTVA_2.text(),
+            ]
+            return validate_fields(*required_fields)
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la validation de la deuxième ligne")
+            return False
+
+    def add_new_row(self):
+        """Ajoute une nouvelle dépense dans la table 'depenses'."""
+        if not self.validate_fields():
+            return
+
+        try:
+            # Récupération et validation des données
+            depense_data = self._get_depense_data()
+            if not depense_data:
+                return
+
+            # Vérifier si le fournisseur existe
+            fournisseur = self.ui.comboBoxFournisseur.currentText()
+            if not self.db_manager.fournisseur_exists(fournisseur):
+                # Demander à l'utilisateur s'il souhaite ajouter le fournisseur
+                response = QMessageBox.question(self, "Fournisseur non trouvé",
+                                                f"Le fournisseur '{fournisseur}' n'existe pas. Voulez-vous l'ajouter ?",
+                                                QMessageBox.Yes | QMessageBox.No)
+                if response == QMessageBox.Yes:
+                    # Ajouter le fournisseur à la base de données
+                    self.db_manager.insert_fournisseur(fournisseur)
+                    # Mettre à jour la combobox des fournisseurs
+                    configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
+
+            # Insertion de la première dépense
+            success = self.db_manager.insert_depense(*depense_data)
+
+            # Gestion de la deuxième ligne si activée
+            if self.ui.checkBox2emeLigne.isChecked():
+                try:
+                    second_line_data = self._get_second_line_data()
+                    if second_line_data:
+                        success &= self.db_manager.insert_depense(*second_line_data)
+                except Exception as e:
+                    handle_exception(e, "Erreur lors de l'ajout de la deuxième dépense")
+                    return
+
+            if success:
+                QMessageBox.information(self, "Succès", ERROR_MESSAGES["ADD_SUCCESS"])
+                self.load_depenses()
+                self.clear_fields()
+            else:
+                QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
+        except Exception as e:
+            handle_exception(e, "Erreur lors de l'ajout de la dépense")
+
+    def clear_fields(self):
+        """Efface tous les champs de saisie pour préparer une nouvelle entrée."""
+        try:
+            # Champs principaux
+            self.ui.lineEditDate.clear()
+            self.ui.comboBoxFournisseur.setCurrentIndex(-1)
+            self.ui.lineEditMontant.clear()
+            self.ui.comboBoxTVA.setCurrentIndex(0)
+            self.ui.lineEditMontantTVA.clear()
+            self.ui.lineEditComentaire.clear()
+            self.ui.checkBoxValidation.setChecked(False)
+
+            # Champs de la deuxième ligne
+            self.ui.lineEditMontant_2.clear()
+            self.ui.comboBoxTVA_2.setCurrentIndex(0)
+            self.ui.lineEditMontantTVA_2.clear()
+            self.ui.lineEditComentaire_2.clear()
+            self.ui.checkBoxValidation_2.setChecked(False)
+            self.ui.checkBox2emeLigne.setChecked(False)
+
+            # Réinitialisation de la sélection
+            self.selected_row_id = None
+
+            # Réactivation des éléments
+            self.ui.pushButtonValider.setEnabled(True)
+            self.ui.checkBox2emeLigne.setEnabled(True)
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la réinitialisation des champs")
+
+    def load_selected_row(self, row):
+        """Charge les valeurs d'une ligne sélectionnée dans les champs de saisie."""
+        try:
+            self.selected_row_id = self.ui.tableWidget.item(row, 0).text()
+            self.ui.lineEditDate.setText(self.ui.tableWidget.item(row, 1).text())
+            self.ui.comboBoxFournisseur.setCurrentText(self.ui.tableWidget.item(row, 2).text())
+            self.ui.lineEditMontant.setText(self.ui.tableWidget.item(row, 3).text())
+            self.ui.comboBoxTVA.setCurrentText(f"{self.ui.tableWidget.item(row, 4).text()}%")
+            self.ui.lineEditMontantTVA.setText(self.ui.tableWidget.item(row, 5).text())
+            self.ui.checkBoxValidation.setChecked(self.ui.tableWidget.item(row, 6).text() == "Oui")
+            self.ui.lineEditComentaire.setText(self.ui.tableWidget.item(row, 7).text())
+
+            # Désactivation des éléments
+            self.ui.pushButtonValider.setEnabled(False)
+            self.ui.checkBox2emeLigne.setEnabled(False)
+        except Exception as e:
+            handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")
+
+    def update_row(self):
+        """Modifie une dépense existante dans la base de données."""
+        if not self.selected_row_id:
+            QMessageBox.warning(self, "Attention", ERROR_MESSAGES["NO_SELECTION"])
+            return
+
+        if not self.validate_fields():
+            return
+
+        try:
+            # Récupération et validation des données
+            depense_data = self._get_depense_data()
+            if not depense_data:
+                return
+
+            # Mise à jour de la dépense
+            success = self.db_manager.update_depense(self.selected_row_id, *depense_data)
+
+            if success:
+                QMessageBox.information(self, "Succès", ERROR_MESSAGES["UPDATE_SUCCESS"])
+                self.load_depenses()
+                self.clear_fields()
+            else:
+                QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la modification de la dépense")
+
+    def delete_row(self):
+        """Supprime une dépense existante de la base de données."""
+        if not self.selected_row_id:
+            QMessageBox.warning(self, "Attention", ERROR_MESSAGES["NO_SELECTION"])
+            return
+
+        try:
+            success = self.db_manager.delete_depense(self.selected_row_id)
+            if success:
+                QMessageBox.information(self, "Succès", ERROR_MESSAGES["DELETE_SUCCESS"])
+                self.load_depenses()
+                self.clear_fields()
+            else:
+                QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la suppression de la dépense")
+
+    def eventFilter(self, obj, event):
+        """Filtre les événements pour gérer la touche Entrée."""
+        if event.type() == QEvent.KeyPress:
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                # Si le focus est sur un champ de saisie ou une combobox, ne rien faire
+                if isinstance(obj, (QLineEdit, QComboBox)):
+                    return False
+                # Si le focus est sur le bouton Quitter, ne rien faire
+                if obj == self.ui.quitterButton:
+                    return False
+                # Si le focus est sur le tableau, ne rien faire
+                if obj == self.ui.tableWidget:
+                    return False
+                # Sinon, simuler un clic sur le bouton Valider
+                self.add_new_row()
+                return True
+        return super().eventFilter(obj, event)
+
+    def keyPressEvent(self, event):
+        """Gère les événements de clavier globaux."""
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            # Si le focus est sur un champ de saisie ou une combobox, ne rien faire
+            if isinstance(self.focusWidget(), (QLineEdit, QComboBox)):
+                return
+            # Si le focus est sur le bouton Quitter, ne rien faire
+            if self.focusWidget() == self.ui.quitterButton:
+                return
+            # Si le focus est sur le tableau, ne rien faire
+            if self.focusWidget() == self.ui.tableWidget:
+                return
+            # Sinon, simuler un clic sur le bouton Valider
+            self.add_new_row()
+        else:
+            super().keyPressEvent(event)
