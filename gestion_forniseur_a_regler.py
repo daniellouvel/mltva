@@ -4,6 +4,8 @@ from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QVBoxLayou
 from ui.ui_gestion_forniseur_a_regler import Ui_Dialog
 from database import DatabaseManager
 from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 class GestionFournisseurARegler(QDialog):
     def __init__(self):
@@ -19,6 +21,7 @@ class GestionFournisseurARegler(QDialog):
 
         # Connexion des boutons
         self.ui.pushButtonValider.clicked.connect(self.on_valider_clicked)
+        self.ui.pushButton_export_pdf.clicked.connect(self.export_pdf)  # Connexion du bouton PDF
         self.ui.quitterButton.clicked.connect(self.close)
 
         # Améliorer l'apparence de l'interface
@@ -101,6 +104,48 @@ class GestionFournisseurARegler(QDialog):
             # QMessageBox.information(self, "Information", "Validation effectuée pour les lignes sélectionnées.")  # Ligne supprimée
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur lors de la validation : {str(e)}")
+
+    def export_pdf(self):
+        """Génère un rapport PDF des dépenses."""
+        query = "SELECT id, date, fournisseur, ttc FROM depenses WHERE validation != 'Oui'"
+        rows = self.db_manager.fetch_all(query)
+
+        pdf_file = "fournisseur_a_regler.pdf"  # Nom du fichier PDF
+        c = canvas.Canvas(pdf_file, pagesize=letter)
+        width, height = letter
+
+        # Ajouter le titre
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(100, height - 50, "Dépenses à Régler")
+
+        # Ajouter les en-têtes de colonnes
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, height - 100, "ID")
+        c.drawString(150, height - 100, "Date")
+        c.drawString(250, height - 100, "Fournisseur")
+        c.drawString(400, height - 100, "TTC")
+
+        # Ajouter les lignes de données
+        c.setFont("Helvetica", 12)
+        y_position = height - 120
+        total_ttc = 0.0  # Initialiser le total TTC
+
+        for row in rows:
+            c.drawString(50, y_position, str(row[0]))  # ID
+            c.drawString(150, y_position, row[1])       # Date
+            c.drawString(250, y_position, row[2])       # Fournisseur
+            c.drawString(400, y_position, f"{row[3]:,.2f} €")  # TTC
+            total_ttc += float(row[3])  # Ajouter au total TTC
+            y_position -= 20  # Déplacer vers le bas pour la prochaine ligne
+
+        # Ajouter le total
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, y_position, "Total TTC :")  # Label pour le total
+        c.drawString(150, y_position, f"{total_ttc:,.2f} €")  # Valeur totale
+
+        # Sauvegarder le PDF
+        c.save()
+        QMessageBox.information(self, "Succès", f"PDF généré : {pdf_file}")
 
 if __name__ == "__main__":
     import sys
