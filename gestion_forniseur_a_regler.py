@@ -138,9 +138,13 @@ class GestionFournisseurARegler(QDialog):
         total_ttc = 0.0  # Initialiser le total TTC
 
         for row in rows:
+            # Formatage de la date au format dd/mm/yyyy
+            date_obj = datetime.strptime(row[1], "%Y-%m-%d")  # Assurez-vous que le format d'origine est correct
+            formatted_date = date_obj.strftime("%d/%m/%Y")  # Formatage de la date
+
             data.append([
                 str(row[0]),  # ID
-                row[1],       # Date
+                formatted_date,  # Date formatée
                 row[2],       # Fournisseur
                 f"{row[3]:,.2f} €"  # TTC
             ])
@@ -172,7 +176,6 @@ class GestionFournisseurARegler(QDialog):
 
         # Sauvegarder le PDF
         doc.build(elements)
-        QMessageBox.information(self, "Succès", f"PDF généré : {pdf_file}")
 
 if __name__ == "__main__":
     import sys
