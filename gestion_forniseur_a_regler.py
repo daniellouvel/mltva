@@ -9,6 +9,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from pdf_generator import PDFGenerator  # Importer la classe PDFGenerator
 
 class GestionFournisseurARegler(QDialog):
     def __init__(self):
@@ -18,6 +19,7 @@ class GestionFournisseurARegler(QDialog):
 
         # Initialisation de la base de données
         self.db_manager = DatabaseManager()
+        self.pdf_generator = PDFGenerator(self.db_manager)  # Créer une instance de PDFGenerator
 
         # Charger les données dans le tableau
         self.load_depenses()
@@ -122,25 +124,14 @@ class GestionFournisseurARegler(QDialog):
         if not pdf_file:  # Vérifier si l'utilisateur a annulé le dialogue
             return
 
-        doc = SimpleDocTemplate(pdf_file, pagesize=letter)
-
-        # Styles pour le PDF
-        styles = getSampleStyleSheet()
-        elements = []
-
-        # Ajouter le titre
-        title = Paragraph("Dépenses à Régler", styles['Title'])
-        elements.append(title)
-        elements.append(Spacer(1, 12))  # Espacement après le titre
-
-        # Créer les données pour le tableau
+        # Préparer les données pour le PDF
         data = [['ID', 'Date', 'Fournisseur', 'TTC']]
         total_ttc = 0.0  # Initialiser le total TTC
 
         for row in rows:
             # Formatage de la date au format dd/mm/yyyy
-            date_obj = datetime.strptime(row[1], "%Y-%m-%d")  # Assurez-vous que le format d'origine est correct
-            formatted_date = date_obj.strftime("%d/%m/%Y")  # Formatage de la date
+            date_obj = datetime.strptime(row[1], "%Y-%m-%d")
+            formatted_date = date_obj.strftime("%d/%m/%Y")
 
             data.append([
                 str(row[0]),  # ID
@@ -153,29 +144,8 @@ class GestionFournisseurARegler(QDialog):
         # Ajouter le total à la fin des données
         data.append(['', '', 'Total TTC :', f"{total_ttc:,.2f} €"])
 
-        # Créer le tableau
-        table = Table(data, colWidths=[50, 100, 185, 80])  # Ajuster les largeurs des colonnes
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),  # Couleur d'arrière-plan pour l'en-tête
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Couleur du texte pour l'en-tête
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Alignement du texte
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Police pour l'en-tête
-            ('FONTSIZE', (0, 0), (-1, 0), 12),  # Taille de police pour l'en-tête
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Espacement en bas de l'en-tête
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),  # Grille autour des cellules
-            ('ALIGN', (2, 0), (2, -1), 'RIGHT'),  # Alignement à droite pour la colonne TTC
-            ('FONTSIZE', (0, 0), (-1, -1), 10),  # Taille de police pour le reste
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),  # Espacement à gauche
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),  # Espacement à droite
-            ('TOPPADDING', (0, 0), (-1, -1), 4),  # Espacement en haut
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),  # Espacement en bas
-        ]))
-
-        # Ajouter le tableau au PDF
-        elements.append(table)
-
-        # Sauvegarder le PDF
-        doc.build(elements)
+        # Générer le PDF en utilisant PDFGenerator
+        self.pdf_generator.generate_pdf(data, pdf_file)
 
 if __name__ == "__main__":
     import sys

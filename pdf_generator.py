@@ -283,4 +283,66 @@ class PDFGenerator:
                 
         except Exception as e:
             print(f"Erreur lors de la génération du PDF : {str(e)}")
-            raise Exception(f"Erreur lors de la génération du PDF : {str(e)}") 
+            raise Exception(f"Erreur lors de la génération du PDF : {str(e)}")
+
+    def generate_pdf(self, data, output_file):
+        """Génère un PDF simple avec les données fournies."""
+        try:
+            # Créer le document PDF
+            doc = SimpleDocTemplate(
+                output_file,
+                pagesize=A4,
+                rightMargin=30,
+                leftMargin=30,
+                topMargin=30,
+                bottomMargin=30
+            )
+
+            # Styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=20,
+                spaceAfter=30,
+                textColor=colors.HexColor('#1a237e'),
+                alignment=1,
+                fontName='Helvetica-Bold',
+                leading=24
+            )
+
+            # Éléments du document
+            elements = []
+
+            # Titre
+            title = Paragraph("Dépenses à Régler", title_style)
+            elements.append(title)
+            elements.append(Spacer(1, 20))
+
+            # Tableau
+            table = Table(data, colWidths=[50, 100, 185, 80])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+
+            elements.append(table)
+
+            # Construire le PDF
+            doc.build(elements)
+            return True
+
+        except Exception as e:
+            print(f"Erreur lors de la génération du PDF : {str(e)}")
+            return False 
