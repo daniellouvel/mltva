@@ -63,6 +63,9 @@ class GestionDepenses(QDialog):
         self.load_periode()
         self.load_depenses()
 
+        # Mettre le focus sur lineEditDate
+        self.ui.lineEditDate.setFocus()  # Placer le focus sur lineEditDate
+
     def _setup_ui(self):
         """Configure l'interface utilisateur."""
         # Configuration du tableau
@@ -421,5 +424,7 @@ class GestionDepenses(QDialog):
 
     def open_calculette(self):
         """Ouvre la calculette."""
-        self.calculette_window = CalculetteDialog()  # Modification ici
+        self.calculette_window = CalculetteDialog(self)  # Passer l'instance de GestionDepenses
+        tva_value = self.ui.comboBoxTVA.currentText()  # Récupérer la valeur du taux de TVA
+        self.calculette_window.set_initial_values(tva_value)  # Définir la valeur dans la calculette
         self.calculette_window.exec()  # Affichez la fenêtre de la calculette

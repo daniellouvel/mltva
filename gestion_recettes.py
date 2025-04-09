@@ -13,6 +13,7 @@ from util import (
 from database import DatabaseManager
 from datetime import datetime
 from calculette import CalculetteDialog  # Modification ici
+from constants import UI_CONFIG  # Importer UI_CONFIG
 
 
 class GestionRecettes(QDialog):
@@ -81,6 +82,9 @@ class GestionRecettes(QDialog):
 
         # Initialisation du champ de TVA en lecture seule
         self.ui.lineEditMontantTVA.setReadOnly(True)
+
+        # Mettre le focus sur lineEditDate
+        self.ui.lineEditDate.setFocus()  # Placer le focus sur lineEditDate
 
     def eventFilter(self, obj, event):
         """Filtre les événements pour gérer la touche Entrée."""
@@ -222,8 +226,8 @@ class GestionRecettes(QDialog):
 
     def configure_tva_combobox(self):
         """Configure les options disponibles pour le taux de TVA."""
-        self.ui.comboBoxTVA.clear()
-        self.ui.comboBoxTVA.addItems(["0%", "5.5%", "10%", "20%"])
+        self.ui.comboBoxTVA.clear()  # Effacer les anciennes valeurs
+        self.ui.comboBoxTVA.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])  # Ajouter les taux de TVA
 
     def add_new_row(self):
         """Ajoute une nouvelle recette dans la table 'recettes'."""
@@ -378,5 +382,8 @@ class GestionRecettes(QDialog):
 
     def open_calculette(self):
         """Ouvre la calculette."""
-        self.calculette_window = CalculetteDialog()  # Modification ici
+        self.calculette_window = CalculetteDialog(self)  # Passer l'instance de GestionRecettes
+        montant_value = self.ui.lineEditMontant.text()  # Récupérer la valeur du montant
+        tva_value = self.ui.comboBoxTVA.currentText()  # Récupérer la valeur du taux de TVA
+        self.calculette_window.set_initial_values(tva_value, montant_value)  # Définir la valeur dans la calculette
         self.calculette_window.exec()  # Affichez la fenêtre de la calculette

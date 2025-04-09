@@ -38,10 +38,6 @@ class Ui_Form(object):
         self.gridLayout_2.addWidget(self.pushButton, 3, 1, 1, 1)
 
         self.comboBoxtva = QComboBox(self.layoutWidget)
-        self.comboBoxtva.addItem("")
-        self.comboBoxtva.addItem("")
-        self.comboBoxtva.addItem("")
-        self.comboBoxtva.addItem("")
         self.comboBoxtva.setObjectName(u"comboBoxtva")
 
         self.gridLayout_2.addWidget(self.comboBoxtva, 1, 1, 1, 1)
@@ -83,11 +79,6 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
         self.pushButton.setText(QCoreApplication.translate("Form", u"Validation ", None))
-        self.comboBoxtva.setItemText(0, QCoreApplication.translate("Form", u"0%", None))
-        self.comboBoxtva.setItemText(1, QCoreApplication.translate("Form", u"5.5%", None))
-        self.comboBoxtva.setItemText(2, QCoreApplication.translate("Form", u"10%", None))
-        self.comboBoxtva.setItemText(3, QCoreApplication.translate("Form", u"20%", None))
-
         self.label_5.setText(QCoreApplication.translate("Form", u"Taux :  ", None))
         self.label.setText(QCoreApplication.translate("Form", u"TTC :", None))
         self.label_3.setText(QCoreApplication.translate("Form", u"Mnt TVA : ", None))

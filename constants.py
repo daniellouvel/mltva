@@ -28,7 +28,7 @@ DB_CONFIG = {
 UI_CONFIG = {
     "DATE_FORMAT": "%d/%m/%Y",
     "CALENDAR_VISIBLE": False,
-    "DEFAULT_TVA_RATES": ["0.00%", "5.50%", "10.00%", "20.00%"]
+    "DEFAULT_TVA_RATES": ["5.50%", "10.00%", "20.00%", "0.00%"]
 }
 
 # Messages de validation
