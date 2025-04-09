@@ -15,11 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCalendarWidget, QCheckBox,
-    QComboBox, QDialog, QFrame, QGridLayout,
-    QHeaderView, QLabel, QLineEdit, QPushButton,
-    QSizePolicy, QSplitter, QTableWidget, QTableWidgetItem,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCalendarWidget, QComboBox,
+    QDialog, QGridLayout, QHeaderView, QLabel,
+    QLineEdit, QPushButton, QSizePolicy, QSplitter,
+    QTableWidget, QTableWidgetItem, QWidget)
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -51,7 +50,7 @@ class Ui_Dialog(object):
         __qtablewidgetitem8 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(8, __qtablewidgetitem8)
         self.tableWidget.setObjectName(u"tableWidget")
-        self.tableWidget.setGeometry(QRect(10, 320, 1101, 411))
+        self.tableWidget.setGeometry(QRect(10, 330, 1101, 401))
         self.tableWidget.setMinimumSize(QSize(1101, 0))
         self.tableWidget.setAlternatingRowColors(True)
         self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
@@ -59,13 +58,13 @@ class Ui_Dialog(object):
         self.calendarWidget = QCalendarWidget(Dialog)
         self.calendarWidget.setObjectName(u"calendarWidget")
         self.calendarWidget.setEnabled(True)
-        self.calendarWidget.setGeometry(QRect(240, 10, 256, 190))
+        self.calendarWidget.setGeometry(QRect(260, 50, 256, 190))
         self.calendarWidget.setGridVisible(False)
         self.calendarWidget.setNavigationBarVisible(True)
         self.calendarWidget.setDateEditEnabled(True)
         self.splitter = QSplitter(Dialog)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setGeometry(QRect(350, 10, 368, 32))
+        self.splitter.setGeometry(QRect(340, 10, 368, 32))
         self.splitter.setOrientation(Qt.Orientation.Horizontal)
         self.label = QLabel(self.splitter)
         self.label.setObjectName(u"label")
@@ -78,87 +77,38 @@ class Ui_Dialog(object):
         self.anneeLabel.setObjectName(u"anneeLabel")
         self.anneeLabel.setStyleSheet(u"font: 18pt \"Segoe UI\";")
         self.splitter.addWidget(self.anneeLabel)
-        self.Saisie2em2ligne = QFrame(Dialog)
-        self.Saisie2em2ligne.setObjectName(u"Saisie2em2ligne")
-        self.Saisie2em2ligne.setGeometry(QRect(250, 150, 233, 111))
-        self.gridLayout_2 = QGridLayout(self.Saisie2em2ligne)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.lineEditMontant_2 = QLineEdit(self.Saisie2em2ligne)
-        self.lineEditMontant_2.setObjectName(u"lineEditMontant_2")
-
-        self.gridLayout_2.addWidget(self.lineEditMontant_2, 0, 1, 1, 1)
-
-        self.comboBoxTVA_2 = QComboBox(self.Saisie2em2ligne)
-        self.comboBoxTVA_2.addItem("")
-        self.comboBoxTVA_2.addItem("")
-        self.comboBoxTVA_2.addItem("")
-        self.comboBoxTVA_2.addItem("")
-        self.comboBoxTVA_2.setObjectName(u"comboBoxTVA_2")
-
-        self.gridLayout_2.addWidget(self.comboBoxTVA_2, 1, 1, 1, 1)
-
-        self.labelTTC_2 = QLabel(self.Saisie2em2ligne)
-        self.labelTTC_2.setObjectName(u"labelTTC_2")
-
-        self.gridLayout_2.addWidget(self.labelTTC_2, 0, 0, 1, 1)
-
-        self.labelComentaire_2 = QLabel(self.Saisie2em2ligne)
-        self.labelComentaire_2.setObjectName(u"labelComentaire_2")
-
-        self.gridLayout_2.addWidget(self.labelComentaire_2, 3, 0, 1, 1)
-
-        self.labelTVA_2 = QLabel(self.Saisie2em2ligne)
-        self.labelTVA_2.setObjectName(u"labelTVA_2")
-
-        self.gridLayout_2.addWidget(self.labelTVA_2, 1, 0, 1, 1)
-
-        self.lineEditMontantTVA_2 = QLineEdit(self.Saisie2em2ligne)
-        self.lineEditMontantTVA_2.setObjectName(u"lineEditMontantTVA_2")
-
-        self.gridLayout_2.addWidget(self.lineEditMontantTVA_2, 2, 1, 1, 1)
-
-        self.labelMontantTVA_2 = QLabel(self.Saisie2em2ligne)
-        self.labelMontantTVA_2.setObjectName(u"labelMontantTVA_2")
-
-        self.gridLayout_2.addWidget(self.labelMontantTVA_2, 2, 0, 1, 1)
-
-        self.lineEditComentaire_2 = QLineEdit(self.Saisie2em2ligne)
-        self.lineEditComentaire_2.setObjectName(u"lineEditComentaire_2")
-
-        self.gridLayout_2.addWidget(self.lineEditComentaire_2, 3, 1, 1, 1)
-
         self.layoutWidgetBoutons = QWidget(Dialog)
         self.layoutWidgetBoutons.setObjectName(u"layoutWidgetBoutons")
         self.layoutWidgetBoutons.setGeometry(QRect(10, 280, 411, 26))
         self.bouton = QGridLayout(self.layoutWidgetBoutons)
         self.bouton.setObjectName(u"bouton")
         self.bouton.setContentsMargins(0, 0, 0, 0)
+        self.pushButtonEffacer = QPushButton(self.layoutWidgetBoutons)
+        self.pushButtonEffacer.setObjectName(u"pushButtonEffacer")
+
+        self.bouton.addWidget(self.pushButtonEffacer, 0, 2, 1, 1)
+
+        self.pushButtonModifier = QPushButton(self.layoutWidgetBoutons)
+        self.pushButtonModifier.setObjectName(u"pushButtonModifier")
+
+        self.bouton.addWidget(self.pushButtonModifier, 0, 1, 1, 1)
+
         self.pushButtonValider = QPushButton(self.layoutWidgetBoutons)
         self.pushButtonValider.setObjectName(u"pushButtonValider")
 
         self.bouton.addWidget(self.pushButtonValider, 0, 0, 1, 1)
 
-        self.checkBox2emeLigne = QCheckBox(self.layoutWidgetBoutons)
-        self.checkBox2emeLigne.setObjectName(u"checkBox2emeLigne")
+        self.push_calculettettc = QPushButton(self.layoutWidgetBoutons)
+        self.push_calculettettc.setObjectName(u"push_calculettettc")
 
-        self.bouton.addWidget(self.checkBox2emeLigne, 0, 1, 1, 1)
-
-        self.pushButtonModifier = QPushButton(self.layoutWidgetBoutons)
-        self.pushButtonModifier.setObjectName(u"pushButtonModifier")
-
-        self.bouton.addWidget(self.pushButtonModifier, 0, 2, 1, 1)
-
-        self.pushButtonEffacer = QPushButton(self.layoutWidgetBoutons)
-        self.pushButtonEffacer.setObjectName(u"pushButtonEffacer")
-
-        self.bouton.addWidget(self.pushButtonEffacer, 0, 3, 1, 1)
+        self.bouton.addWidget(self.push_calculettettc, 0, 3, 1, 1)
 
         self.pushButtonSuprimer = QPushButton(Dialog)
         self.pushButtonSuprimer.setObjectName(u"pushButtonSuprimer")
         self.pushButtonSuprimer.setGeometry(QRect(920, 740, 91, 41))
         self.layoutWidget = QWidget(Dialog)
         self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(20, 59, 216, 220))
+        self.layoutWidget.setGeometry(QRect(40, 50, 216, 220))
         self.gridLayout = QGridLayout(self.layoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -264,7 +214,6 @@ class Ui_Dialog(object):
         self.splitter.raise_()
         self.quitterButton.raise_()
         self.tableWidget.raise_()
-        self.Saisie2em2ligne.raise_()
         self.calendarWidget.raise_()
 
         self.retranslateUi(Dialog)
@@ -296,27 +245,18 @@ class Ui_Dialog(object):
         self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Gestion Des Recettes</span></p></body></html>", None))
         self.moisLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Mois</span></p></body></html>", None))
         self.anneeLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Ann\u00e9e</span></p></body></html>", None))
-        self.comboBoxTVA_2.setItemText(0, QCoreApplication.translate("Dialog", u"0%", None))
-        self.comboBoxTVA_2.setItemText(1, QCoreApplication.translate("Dialog", u"5.5%", None))
-        self.comboBoxTVA_2.setItemText(2, QCoreApplication.translate("Dialog", u"10%", None))
-        self.comboBoxTVA_2.setItemText(3, QCoreApplication.translate("Dialog", u"20%", None))
-
-        self.labelTTC_2.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Montant</p></body></html>", None))
-        self.labelComentaire_2.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Comentaire :</p></body></html>", None))
-        self.labelTVA_2.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>TVA :</p></body></html>", None))
-        self.labelMontantTVA_2.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Montant TVA :</p></body></html>", None))
-        self.pushButtonValider.setText(QCoreApplication.translate("Dialog", u"Valider", None))
-        self.checkBox2emeLigne.setText(QCoreApplication.translate("Dialog", u"2eme Ligne", None))
-        self.pushButtonModifier.setText(QCoreApplication.translate("Dialog", u"Modifier", None))
 #if QT_CONFIG(tooltip)
         self.pushButtonEffacer.setToolTip("")
 #endif // QT_CONFIG(tooltip)
         self.pushButtonEffacer.setText(QCoreApplication.translate("Dialog", u"Effacer", None))
+        self.pushButtonModifier.setText(QCoreApplication.translate("Dialog", u"Modifier", None))
+        self.pushButtonValider.setText(QCoreApplication.translate("Dialog", u"Valider", None))
+        self.push_calculettettc.setText(QCoreApplication.translate("Dialog", u"Calculette TTC", None))
         self.pushButtonSuprimer.setText(QCoreApplication.translate("Dialog", u"Supprimer", None))
         self.label_3.setText(QCoreApplication.translate("Dialog", u"N\u00b0facture", None))
         self.label_2.setText(QCoreApplication.translate("Dialog", u"Paiement", None))
         self.labelTVA.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>TVA :</p></body></html>", None))
-        self.labelForniseur.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Fournisseur :</p></body></html>", None))
+        self.labelForniseur.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Client</p></body></html>", None))
         self.labelMontantTVA.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Montant TVA :</p></body></html>", None))
         self.labelTTC.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Montant</p></body></html>", None))
         self.labelComentaire.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Comentaire :</p></body></html>", None))

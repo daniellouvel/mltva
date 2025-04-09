@@ -19,13 +19,13 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QHBoxLayout,
     QLabel, QLineEdit, QMainWindow, QMenu,
     QMenuBar, QPushButton, QSizePolicy, QSplitter,
-    QStatusBar, QWidget)
+    QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(794, 587)
+        MainWindow.resize(800, 600)
         self.actionContacts = QAction(MainWindow)
         self.actionContacts.setObjectName(u"actionContacts")
         self.centralwidget = QWidget(MainWindow)
@@ -79,23 +79,38 @@ class Ui_MainWindow(object):
 
         self.groupBoxpreiode = QGroupBox(self.centralwidget)
         self.groupBoxpreiode.setObjectName(u"groupBoxpreiode")
-        self.groupBoxpreiode.setGeometry(QRect(300, 250, 171, 251))
+        self.groupBoxpreiode.setGeometry(QRect(280, 320, 191, 211))
         self.groupBoxpreiode.setStyleSheet(u"QGroupBox {\n"
 "    border: none;\n"
 "}\n"
 "")
-        self.pushButton_export_pdf = QPushButton(self.groupBoxpreiode)
-        self.pushButton_export_pdf.setObjectName(u"pushButton_export_pdf")
-        self.pushButton_export_pdf.setGeometry(QRect(20, 160, 130, 30))
-        self.quitterButton = QPushButton(self.groupBoxpreiode)
-        self.quitterButton.setObjectName(u"quitterButton")
-        self.quitterButton.setGeometry(QRect(20, 210, 130, 30))
+        self.verticalLayout = QVBoxLayout(self.groupBoxpreiode)
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.depensesButton = QPushButton(self.groupBoxpreiode)
         self.depensesButton.setObjectName(u"depensesButton")
-        self.depensesButton.setGeometry(QRect(20, 80, 130, 30))
+
+        self.verticalLayout.addWidget(self.depensesButton)
+
         self.recettesButton = QPushButton(self.groupBoxpreiode)
         self.recettesButton.setObjectName(u"recettesButton")
-        self.recettesButton.setGeometry(QRect(20, 120, 130, 30))
+
+        self.verticalLayout.addWidget(self.recettesButton)
+
+        self.pushButton_export_pdf = QPushButton(self.groupBoxpreiode)
+        self.pushButton_export_pdf.setObjectName(u"pushButton_export_pdf")
+
+        self.verticalLayout.addWidget(self.pushButton_export_pdf)
+
+        self.pusharegeler = QPushButton(self.groupBoxpreiode)
+        self.pusharegeler.setObjectName(u"pusharegeler")
+
+        self.verticalLayout.addWidget(self.pusharegeler)
+
+        self.quitterButton = QPushButton(self.groupBoxpreiode)
+        self.quitterButton.setObjectName(u"quitterButton")
+
+        self.verticalLayout.addWidget(self.quitterButton)
+
         self.layoutWidget = QWidget(self.centralwidget)
         self.layoutWidget.setObjectName(u"layoutWidget")
         self.layoutWidget.setGeometry(QRect(0, 0, 2, 2))
@@ -105,7 +120,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 794, 22))
+        self.menubar.setGeometry(QRect(0, 0, 800, 22))
         self.menuConfig = QMenu(self.menubar)
         self.menuConfig.setObjectName(u"menuConfig")
         self.menuAide = QMenu(self.menubar)
@@ -145,10 +160,17 @@ class Ui_MainWindow(object):
         self.moisComboBox.setItemText(11, QCoreApplication.translate("MainWindow", u"D\u00e9cembre", None))
 
         self.groupBoxpreiode.setTitle("")
-        self.pushButton_export_pdf.setText(QCoreApplication.translate("MainWindow", u"Export PDF", None))
-        self.quitterButton.setText(QCoreApplication.translate("MainWindow", u"Quitter", None))
         self.depensesButton.setText(QCoreApplication.translate("MainWindow", u"D\u00e9ppences", None))
         self.recettesButton.setText(QCoreApplication.translate("MainWindow", u"Recettes", None))
+        self.pushButton_export_pdf.setText(QCoreApplication.translate("MainWindow", u"Export PDF", None))
+#if QT_CONFIG(tooltip)
+        self.pusharegeler.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">founiseur a</p><p align=\"center\">regler</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(whatsthis)
+        self.pusharegeler.setWhatsThis(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">Fonineur a</p><p align=\"center\">Regler</p></body></html>", None))
+#endif // QT_CONFIG(whatsthis)
+        self.pusharegeler.setText(QCoreApplication.translate("MainWindow", u"A regler", None))
+        self.quitterButton.setText(QCoreApplication.translate("MainWindow", u"Quitter", None))
         self.menuConfig.setTitle(QCoreApplication.translate("MainWindow", u"Config", None))
         self.menuAide.setTitle(QCoreApplication.translate("MainWindow", u"Aide", None))
     # retranslateUi

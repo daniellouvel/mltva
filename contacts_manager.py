@@ -2,6 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem
 from ui.ui_contacts_manager import Ui_ContactsManager  # Importer la classe générée
 from database import DatabaseManager  # Assurez-vous que ce fichier existe
+from PySide6.QtCore import QEvent  # Ajoutez cette importation
 
 class ContactsManager(QMainWindow):
     def __init__(self):
@@ -9,7 +10,7 @@ class ContactsManager(QMainWindow):
         self.ui = Ui_ContactsManager()  # Créer une instance de la classe UI
         self.ui.setupUi(self)  # Configurer l'interface
         self.db_manager = DatabaseManager()  # Initialiser la gestion de la base de données
-        self.load_contacts()
+        self._contacts_loaded = False
 
         # Connecter les signaux
         self.ui.add_button.clicked.connect(self.add_contact)
@@ -17,6 +18,16 @@ class ContactsManager(QMainWindow):
         self.ui.delete_button.clicked.connect(self.delete_contact)
         self.ui.contacts_table.cellClicked.connect(self.fill_inputs)
         self.ui.pushButton_quitter.clicked.connect(self.close)  # Connecter le bouton Quitter
+
+        # Installer un event filter pour charger les contacts uniquement quand la table devient visible
+        self.ui.contacts_table.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        """Gère le chargement des contacts uniquement quand la table devient visible."""
+        if obj == self.ui.contacts_table and event.type() == QEvent.Show and not self._contacts_loaded:
+            self.load_contacts()
+            self._contacts_loaded = True
+        return super().eventFilter(obj, event)
 
     def load_contacts(self):
         """Charge les contacts dans la table."""

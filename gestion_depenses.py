@@ -85,10 +85,7 @@ class GestionDepenses(QDialog):
         # Connexion des événements
         self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
         self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
-        self.ui.lineEditMontant_2.textChanged.connect(self.calculate_tva_2)
-        self.ui.comboBoxTVA_2.currentTextChanged.connect(self.calculate_tva_2)
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
-        self.ui.checkBox2emeLigne.stateChanged.connect(self.toggle_saisie_2eme_ligne)
 
         # Configuration initiale
         self.ui.Saisie2em2ligne.setVisible(False)
@@ -141,34 +138,6 @@ class GestionDepenses(QDialog):
                 self.ui.tableWidget.setColumnWidth(col, width)
         except Exception as e:
             handle_exception(e, "Erreur lors de la définition des largeurs de colonnes")
-
-    def toggle_saisie_2eme_ligne(self):
-        """Affiche ou masque le cadre Saisie2em2ligne."""
-        try:
-            is_checked = self.ui.checkBox2emeLigne.isChecked()
-            self.ui.Saisie2em2ligne.setVisible(is_checked)
-
-            # Désactiver/activer le calcul automatique de la TVA
-            if is_checked:
-                # Désactiver les connexions pour le calcul de TVA
-                self.ui.lineEditMontant.textChanged.disconnect(self.calculate_tva)
-                self.ui.comboBoxTVA.currentTextChanged.disconnect(self.calculate_tva)
-                self.ui.lineEditMontant_2.textChanged.disconnect(self.calculate_tva_2)
-                self.ui.comboBoxTVA_2.currentTextChanged.disconnect(self.calculate_tva_2)
-                # Initialiser le montant de la deuxième ligne à 0
-                self.ui.lineEditMontant_2.setText("0")
-                # Rendre le champ de TVA modifiable
-                self.ui.lineEditMontantTVA.setReadOnly(False)
-            else:
-                # Réactiver les connexions pour le calcul de TVA
-                self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
-                self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
-                self.ui.lineEditMontant_2.textChanged.connect(self.calculate_tva_2)
-                self.ui.comboBoxTVA_2.currentTextChanged.connect(self.calculate_tva_2)
-                # Rendre le champ de TVA non modifiable
-                self.ui.lineEditMontantTVA.setReadOnly(True)
-        except Exception as e:
-            handle_exception(e, "Erreur lors de la modification de la visibilité de la deuxième ligne")
 
     def load_periode(self):
         """Charge et affiche la période actuelle."""
@@ -294,17 +263,6 @@ class GestionDepenses(QDialog):
         except Exception as e:
             handle_exception(e, "Erreur lors du calcul de la TVA")
 
-    def calculate_tva_2(self):
-        """Calcule le montant de la TVA pour la deuxième ligne."""
-        try:
-            montant_tva = calculate_tva(self.ui.lineEditMontant_2.text(), self.ui.comboBoxTVA_2.currentText())
-            if montant_tva is not None:
-                self.ui.lineEditMontantTVA_2.setText(f"{montant_tva:.2f}")
-            else:
-                self.ui.lineEditMontantTVA_2.setText("")
-        except Exception as e:
-            handle_exception(e, "Erreur lors du calcul de la TVA de la deuxième ligne")
-
     def validate_fields(self):
         """Vérifie si tous les champs obligatoires sont remplis."""
         try:
@@ -357,42 +315,6 @@ class GestionDepenses(QDialog):
             handle_exception(e, "Erreur lors de la récupération des données")
             return None
 
-    def _get_second_line_data(self):
-        """Récupère et valide les données de la deuxième ligne."""
-        try:
-            date_text = self.ui.lineEditDate.text()
-            fournisseur = self.ui.comboBoxFournisseur.currentText()
-            ttc_2 = float(self.ui.lineEditMontant_2.text())
-            tva_rate_2 = float(self.ui.comboBoxTVA_2.currentText().strip('%'))
-            montant_tva_2 = float(self.ui.lineEditMontantTVA_2.text())
-            commentaire_2 = self.ui.lineEditComentaire_2.text()
-            validation_2 = "Oui" if self.ui.checkBoxValidation_2.isChecked() else "Non"
-
-            # Conversion de la date
-            date_obj = datetime.strptime(date_text, "%d/%m/%Y")
-            formatted_date = date_obj.strftime("%Y-%m-%d")
-            
-            return formatted_date, fournisseur, ttc_2, tva_rate_2, montant_tva_2, validation_2, commentaire_2
-        except ValueError as e:
-            QMessageBox.warning(self, "Attention", str(e))
-            return None
-        except Exception as e:
-            handle_exception(e, "Erreur lors de la récupération des données de la deuxième ligne")
-            return None
-
-    def _validate_second_line(self):
-        """Valide les données de la deuxième ligne."""
-        try:
-            required_fields = [
-                self.ui.lineEditMontant_2.text(),
-                self.ui.comboBoxTVA_2.currentText(),
-                self.ui.lineEditMontantTVA_2.text(),
-            ]
-            return validate_fields(*required_fields)
-        except Exception as e:
-            handle_exception(e, "Erreur lors de la validation de la deuxième ligne")
-            return False
-
     def add_new_row(self):
         """Ajoute une nouvelle dépense dans la table 'depenses'."""
         if not self.validate_fields():
@@ -420,16 +342,6 @@ class GestionDepenses(QDialog):
             # Insertion de la première dépense
             success = self.db_manager.insert_depense(*depense_data)
 
-            # Gestion de la deuxième ligne si activée
-            if self.ui.checkBox2emeLigne.isChecked():
-                try:
-                    second_line_data = self._get_second_line_data()
-                    if second_line_data:
-                        success &= self.db_manager.insert_depense(*second_line_data)
-                except Exception as e:
-                    handle_exception(e, "Erreur lors de l'ajout de la deuxième dépense")
-                    return
-
             if success:
                 QMessageBox.information(self, "Succès", ERROR_MESSAGES["ADD_SUCCESS"])
                 self.load_depenses()
@@ -451,20 +363,11 @@ class GestionDepenses(QDialog):
             self.ui.lineEditComentaire.clear()
             self.ui.checkBoxValidation.setChecked(False)
 
-            # Champs de la deuxième ligne
-            self.ui.lineEditMontant_2.clear()
-            self.ui.comboBoxTVA_2.setCurrentIndex(0)
-            self.ui.lineEditMontantTVA_2.clear()
-            self.ui.lineEditComentaire_2.clear()
-            self.ui.checkBoxValidation_2.setChecked(False)
-            self.ui.checkBox2emeLigne.setChecked(False)
-
             # Réinitialisation de la sélection
             self.selected_row_id = None
 
             # Réactivation des éléments
             self.ui.pushButtonValider.setEnabled(True)
-            self.ui.checkBox2emeLigne.setEnabled(True)
         except Exception as e:
             handle_exception(e, "Erreur lors de la réinitialisation des champs")
 
@@ -482,7 +385,6 @@ class GestionDepenses(QDialog):
 
             # Désactivation des éléments
             self.ui.pushButtonValider.setEnabled(False)
-            self.ui.checkBox2emeLigne.setEnabled(False)
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")
 

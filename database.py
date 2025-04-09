@@ -5,6 +5,7 @@ from constants import DB_CONFIG, ERROR_MESSAGES
 class DatabaseManager:
     _instance = None
     _connection = None
+    _cursor = None
 
     def __new__(cls, db_file=None):
         if cls._instance is None:
@@ -16,19 +17,32 @@ class DatabaseManager:
         if db_file is None:
             db_file = DB_CONFIG["DEFAULT_PATH"]
         self.db_file = db_file
-        self.conn = self._get_connection()
+        self._conn = None
+        self._cursor = None
 
-    def _get_connection(self):
-        """Obtient une connexion à la base de données (singleton)."""
-        if self._connection is None:
-            self._connection = self.create_connection()
-        return self._connection
+    @property
+    def conn(self):
+        """Propriété qui gère le Lazy Loading de la connexion."""
+        if self._conn is None:
+            self._conn = self.create_connection()
+        return self._conn
+
+    @property
+    def cursor(self):
+        """Propriété qui gère le Lazy Loading du curseur."""
+        if self._cursor is None:
+            self._cursor = self.conn.cursor()
+        return self._cursor
 
     def create_connection(self):
         """Crée une connexion à la base de données SQLite."""
         try:
             conn = sqlite3.connect(self.db_file)
-            conn.row_factory = sqlite3.Row  # Permet d'accéder aux colonnes par nom
+            conn.row_factory = sqlite3.Row
+            # Optimisation des performances
+            conn.execute("PRAGMA synchronous = NORMAL")
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA cache_size = -2000")  # 2MB de cache
             print(ERROR_MESSAGES["DB_CONNECTION"])
             return conn
         except Error as e:
@@ -37,21 +51,26 @@ class DatabaseManager:
 
     def close_connection(self):
         """Ferme la connexion à la base de données."""
-        if self._connection is not None:
-            self._connection.close()
-            self._connection = None
+        if self._cursor is not None:
+            self._cursor.close()
+            self._cursor = None
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
 
     def load_periode(self):
         """Charge les valeurs de la table 'periode' pour l'id = 1."""
         query = "SELECT mois, annee FROM periode WHERE id = 1"
-        cursor = self.conn.cursor()
-        cursor.execute(query)
-        result = cursor.fetchone()
-
-        if result:
-            return str(result['mois']), str(result['annee'])
-        else:
-            self.save_periode(DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"])
+        try:
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            if result:
+                return str(result['mois']), str(result['annee'])
+            else:
+                self.save_periode(DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"])
+                return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
+        except Error as e:
+            print(ERROR_MESSAGES["DATABASE_ERROR"])
             return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
 
     def save_periode(self, mois, annee):

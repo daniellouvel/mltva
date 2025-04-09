@@ -3,9 +3,9 @@
 
 import sys
 import os
-import pandas as pd
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QSplashScreen
 from PySide6.QtGui import QPixmap
+from PySide6.QtCore import QEvent, Qt, QTimer
 from ui.ui_main_window import Ui_MainWindow
 from database import DatabaseManager
 from gestion_depenses import GestionDepenses
@@ -14,6 +14,7 @@ from constants import DB_CONFIG, ERROR_MESSAGES, UI_CONFIG
 from util import convert_month_to_number
 from pdf_generator import PDFGenerator
 from contacts_manager import ContactsManager
+from gestion_forniseur_a_regler import GestionFournisseurARegler
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,11 +32,19 @@ class MainWindow(QMainWindow):
         # Connexion des boutons
         self._connect_buttons()
 
-        # Chargement du logo
-        self.load_logo()
+        # Le logo sera chargé uniquement quand nécessaire
+        self._logo_loaded = False
+        self.ui.labellogo.installEventFilter(self)
 
         # Connexion de l'action "Contacts"
         self.ui.actionContacts.triggered.connect(self.open_contacts_manager)
+
+    def eventFilter(self, obj, event):
+        """Gère le chargement du logo uniquement quand il devient visible."""
+        if obj == self.ui.labellogo and event.type() == QEvent.Show and not self._logo_loaded:
+            self.load_logo()
+            self._logo_loaded = True
+        return super().eventFilter(obj, event)
 
     def _connect_buttons(self):
         """Connecte tous les boutons de l'interface."""
@@ -43,7 +52,8 @@ class MainWindow(QMainWindow):
             "depensesButton": self.on_depenses_clicked,
             "recettesButton": self.on_recettes_clicked,
             "quitterButton": self.close,
-            "pushButton_export_pdf": self.on_export_pdf_clicked
+            "pushButton_export_pdf": self.on_export_pdf_clicked,
+            "pusharegeler": self.open_gestion_fournisseur
         }
 
         for button_name, callback in button_connections.items():
@@ -144,12 +154,35 @@ class MainWindow(QMainWindow):
         self.contacts_manager = ContactsManager()  # Créez une instance de votre gestionnaire de contacts
         self.contacts_manager.show()  # Affichez la fenêtre
 
+    def open_gestion_fournisseur(self):
+        """Ouvre la fenêtre de gestion des fournisseurs à régler."""
+        self.gestion_fournisseur_window = GestionFournisseurARegler()
+        self.gestion_fournisseur_window.exec()
+
+def show_splash_screen():
+    """Affiche un écran de chargement pendant l'initialisation de l'application."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    image_path = os.path.join(script_dir, "data", "Logo.jpg")
+    
+    pixmap = QPixmap(image_path)
+    splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+    splash.show()
+    
+    # Simuler un temps de chargement
+    QTimer.singleShot(1000, splash.close)
+    return splash
+
 if __name__ == "__main__":
-    try:
-        app = QApplication(sys.argv)
-        window = MainWindow()
-        window.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        print(f"Erreur fatale : {str(e)}")
-        sys.exit(1)
+    app = QApplication(sys.argv)
+    
+    # Afficher l'écran de chargement
+    splash = show_splash_screen()
+    
+    # Créer et afficher la fenêtre principale
+    window = MainWindow()
+    window.show()
+    
+    # Fermer l'écran de chargement
+    splash.finish(window)
+    
+    sys.exit(app.exec())

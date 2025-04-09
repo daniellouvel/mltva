@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>794</width>
-    <height>587</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -143,10 +143,10 @@
    <widget class="QGroupBox" name="groupBoxpreiode">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>250</y>
-      <width>171</width>
-      <height>251</height>
+      <x>280</x>
+      <y>320</y>
+      <width>191</width>
+      <height>211</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -158,58 +158,49 @@
     <property name="title">
      <string/>
     </property>
-    <widget class="QPushButton" name="pushButton_export_pdf">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>160</y>
-       <width>130</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Export PDF</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="quitterButton">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>210</y>
-       <width>130</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Quitter</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="depensesButton">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>80</y>
-       <width>130</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Déppences</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="recettesButton">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>120</y>
-       <width>130</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Recettes</string>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="depensesButton">
+       <property name="text">
+        <string>Dépences</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="recettesButton">
+       <property name="text">
+        <string>Recettes</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_export_pdf">
+       <property name="text">
+        <string>Export PDF</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pusharegeler">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;founiseur a&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;regler&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Fonineur a&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Regler&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>A regler</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="quitterButton">
+       <property name="text">
+        <string>Quitter</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
@@ -228,7 +219,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>794</width>
+     <width>800</width>
      <height>22</height>
     </rect>
    </property>
