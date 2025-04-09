@@ -6,54 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>395</width>
+    <width>243</width>
     <height>151</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>12</x>
      <y>12</y>
-     <width>372</width>
+     <width>221</width>
      <height>128</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="3" column="1">
+       <widget class="QPushButton" name="pushButton">
         <property name="text">
-         <string>Tva 1 : </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEditmnttva1"/>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Tva 2 : </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLineEdit" name="lineEditmnttva2"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Taux 1 : </string>
+         <string>Validation </string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="comboBoxtva1">
+       <widget class="QComboBox" name="comboBoxtva">
         <item>
          <property name="text">
           <string>0%</string>
@@ -76,91 +56,38 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_6">
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEditmnttva"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Taux 2 : </string>
+         <string>Taux :  </string>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QComboBox" name="comboBoxtva2">
-        <item>
-         <property name="text">
-          <string>0%</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>5.5%</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>10%</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>20%</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>TTC 1 :</string>
+         <string>TTC :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Mnt TVA : </string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLabel" name="labelttc1">
-        <property name="text">
-         <string>0</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>TTC2 : </string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QLabel" name="labelttc2">
+       <widget class="QLabel" name="labelttc">
         <property name="text">
          <string>0</string>
         </property>
        </widget>
       </item>
      </layout>
-    </item>
-    <item>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Total TTC : </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="labeltotalttc">
-        <property name="text">
-         <string>0</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pushButton">
-      <property name="text">
-       <string>Validation </string>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>

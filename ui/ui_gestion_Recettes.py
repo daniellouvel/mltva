@@ -64,7 +64,7 @@ class Ui_Dialog(object):
         self.calendarWidget.setDateEditEnabled(True)
         self.splitter = QSplitter(Dialog)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setGeometry(QRect(340, 10, 368, 32))
+        self.splitter.setGeometry(QRect(197, 10, 511, 32))
         self.splitter.setOrientation(Qt.Orientation.Horizontal)
         self.label = QLabel(self.splitter)
         self.label.setObjectName(u"label")
@@ -242,7 +242,7 @@ class Ui_Dialog(object):
         ___qtablewidgetitem7.setText(QCoreApplication.translate("Dialog", u"Montant TVA", None));
         ___qtablewidgetitem8 = self.tableWidget.horizontalHeaderItem(8)
         ___qtablewidgetitem8.setText(QCoreApplication.translate("Dialog", u"Commentaire", None));
-        self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Gestion Des Recettes</span></p></body></html>", None))
+        self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Gestion Des Recettes : </span></p></body></html>", None))
         self.moisLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Mois</span></p></body></html>", None))
         self.anneeLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Ann\u00e9e</span></p></body></html>", None))
 #if QT_CONFIG(tooltip)

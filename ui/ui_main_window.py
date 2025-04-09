@@ -160,7 +160,7 @@ class Ui_MainWindow(object):
         self.moisComboBox.setItemText(11, QCoreApplication.translate("MainWindow", u"D\u00e9cembre", None))
 
         self.groupBoxpreiode.setTitle("")
-        self.depensesButton.setText(QCoreApplication.translate("MainWindow", u"D\u00e9ppences", None))
+        self.depensesButton.setText(QCoreApplication.translate("MainWindow", u"D\u00e9pences", None))
         self.recettesButton.setText(QCoreApplication.translate("MainWindow", u"Recettes", None))
         self.pushButton_export_pdf.setText(QCoreApplication.translate("MainWindow", u"Export PDF", None))
 #if QT_CONFIG(tooltip)

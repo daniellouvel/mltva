@@ -11,8 +11,9 @@ from util import (
     handle_exception,
 )
 from database import DatabaseManager
-from datetime import datetime, timedelta  # Correction : Ajout de timedelta
-from constants import ERROR_MESSAGES, UI_CONFIG, VALIDATION_MESSAGES
+from datetime import datetime
+from constants import ERROR_MESSAGES, UI_CONFIG
+from calculette import CalculetteDialog  # Modification ici
 
 # Configuration des colonnes du tableau
 TABLE_COLUMNS = {
@@ -87,8 +88,8 @@ class GestionDepenses(QDialog):
         self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
 
-        # Configuration initiale
-        self.ui.Saisie2em2ligne.setVisible(False)
+        # Connexion du bouton pour ouvrir la calculette
+        self.ui.push_calculettettc.clicked.connect(self.open_calculette)  # Ajout de la connexion
 
         # Configuration des boutons par défaut
         self.ui.pushButtonValider.setDefault(True)
@@ -146,46 +147,22 @@ class GestionDepenses(QDialog):
             self.ui.anneeLabel.setText(str(self.annee))
             self.selected_month = convert_month_to_number(self.mois)
             self.selected_year = int(self.annee)
-            # On ne configure plus le calendrier ici
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la période")
-
-    def configure_calendar(self):
-        """Configure le calendrier pour restreindre les dates à la période sélectionnée."""
-        try:
-            start_date = datetime(self.selected_year, self.selected_month, 1)
-            end_date = (
-                datetime(self.selected_year + 1, 1, 1)
-                if self.selected_month == 12
-                else datetime(self.selected_year, self.selected_month + 1, 1)
-            )
-            self.ui.calendarWidget.setMinimumDate(start_date)
-            self.ui.calendarWidget.setMaximumDate(end_date)
-            # On ne définit pas de date par défaut
-        except Exception as e:
-            handle_exception(e, "Erreur lors de la configuration du calendrier")
 
     def show_calendar_on_focus(self, event):
         """Affiche le calendrier lorsque le champ de date est cliqué."""
         try:
-            # Configuration des dates minimum et maximum pour la période sélectionnée
             start_date = QDate(self.selected_year, self.selected_month, 1)
-            
-            # Calcul de la date de fin (dernier jour du mois)
             if self.selected_month == 12:
                 end_date = QDate(self.selected_year, 12, 31)
             else:
-                # On prend le premier jour du mois suivant et on soustrait 1 jour
                 next_month = QDate(self.selected_year, self.selected_month + 1, 1)
                 end_date = next_month.addDays(-1)
             
-            # Configuration des dates
             self.ui.calendarWidget.setMinimumDate(start_date)
             self.ui.calendarWidget.setMaximumDate(end_date)
-            
-            # Affichage du calendrier
             self.ui.calendarWidget.setVisible(True)
-            
         except Exception as e:
             handle_exception(e, "Erreur lors de l'affichage du calendrier")
 
@@ -218,7 +195,6 @@ class GestionDepenses(QDialog):
                 for column_number, data in enumerate(row_data):
                     if column_number == TABLE_COLUMNS["DATE"] and isinstance(data, str):
                         try:
-                            # Conversion de la date du format YYYY-MM-DD vers DD/MM/YYYY
                             date_obj = datetime.strptime(data, "%Y-%m-%d")
                             data = date_obj.strftime("%d/%m/%Y")
                         except ValueError:
@@ -226,7 +202,6 @@ class GestionDepenses(QDialog):
                     
                     item = QTableWidgetItem(str(data or ""))
                     
-                    # Coloration de la validation
                     if column_number == TABLE_COLUMNS["VALIDATION"]:
                         if data == "Non":
                             item.setForeground(Qt.red)
@@ -294,13 +269,11 @@ class GestionDepenses(QDialog):
             commentaire = self.ui.lineEditComentaire.text()
             validation = "Oui" if self.ui.checkBoxValidation.isChecked() else "Non"
 
-            # Validation des données
             if not ttc_text.replace('.', '', 1).isdigit():
                 raise ValueError(ERROR_MESSAGES["INVALID_AMOUNT"])
             if not tva_rate_text.endswith('%'):
                 raise ValueError(ERROR_MESSAGES["INVALID_TVA"])
 
-            # Conversion des données
             date_obj = datetime.strptime(date_text, "%d/%m/%Y")
             formatted_date = date_obj.strftime("%Y-%m-%d")
             ttc = float(ttc_text)
@@ -321,25 +294,19 @@ class GestionDepenses(QDialog):
             return
 
         try:
-            # Récupération et validation des données
             depense_data = self._get_depense_data()
             if not depense_data:
                 return
 
-            # Vérifier si le fournisseur existe
             fournisseur = self.ui.comboBoxFournisseur.currentText()
             if not self.db_manager.fournisseur_exists(fournisseur):
-                # Demander à l'utilisateur s'il souhaite ajouter le fournisseur
                 response = QMessageBox.question(self, "Fournisseur non trouvé",
                                                 f"Le fournisseur '{fournisseur}' n'existe pas. Voulez-vous l'ajouter ?",
                                                 QMessageBox.Yes | QMessageBox.No)
                 if response == QMessageBox.Yes:
-                    # Ajouter le fournisseur à la base de données
                     self.db_manager.insert_fournisseur(fournisseur)
-                    # Mettre à jour la combobox des fournisseurs
                     configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
 
-            # Insertion de la première dépense
             success = self.db_manager.insert_depense(*depense_data)
 
             if success:
@@ -354,7 +321,6 @@ class GestionDepenses(QDialog):
     def clear_fields(self):
         """Efface tous les champs de saisie pour préparer une nouvelle entrée."""
         try:
-            # Champs principaux
             self.ui.lineEditDate.clear()
             self.ui.comboBoxFournisseur.setCurrentIndex(-1)
             self.ui.lineEditMontant.clear()
@@ -363,10 +329,7 @@ class GestionDepenses(QDialog):
             self.ui.lineEditComentaire.clear()
             self.ui.checkBoxValidation.setChecked(False)
 
-            # Réinitialisation de la sélection
             self.selected_row_id = None
-
-            # Réactivation des éléments
             self.ui.pushButtonValider.setEnabled(True)
         except Exception as e:
             handle_exception(e, "Erreur lors de la réinitialisation des champs")
@@ -383,7 +346,6 @@ class GestionDepenses(QDialog):
             self.ui.checkBoxValidation.setChecked(self.ui.tableWidget.item(row, 6).text() == "Oui")
             self.ui.lineEditComentaire.setText(self.ui.tableWidget.item(row, 7).text())
 
-            # Désactivation des éléments
             self.ui.pushButtonValider.setEnabled(False)
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")
@@ -398,12 +360,10 @@ class GestionDepenses(QDialog):
             return
 
         try:
-            # Récupération et validation des données
             depense_data = self._get_depense_data()
             if not depense_data:
                 return
 
-            # Mise à jour de la dépense
             success = self.db_manager.update_depense(self.selected_row_id, *depense_data)
 
             if success:
@@ -436,16 +396,12 @@ class GestionDepenses(QDialog):
         """Filtre les événements pour gérer la touche Entrée."""
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                # Si le focus est sur un champ de saisie ou une combobox, ne rien faire
                 if isinstance(obj, (QLineEdit, QComboBox)):
                     return False
-                # Si le focus est sur le bouton Quitter, ne rien faire
                 if obj == self.ui.quitterButton:
                     return False
-                # Si le focus est sur le tableau, ne rien faire
                 if obj == self.ui.tableWidget:
                     return False
-                # Sinon, simuler un clic sur le bouton Valider
                 self.add_new_row()
                 return True
         return super().eventFilter(obj, event)
@@ -453,16 +409,17 @@ class GestionDepenses(QDialog):
     def keyPressEvent(self, event):
         """Gère les événements de clavier globaux."""
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            # Si le focus est sur un champ de saisie ou une combobox, ne rien faire
             if isinstance(self.focusWidget(), (QLineEdit, QComboBox)):
                 return
-            # Si le focus est sur le bouton Quitter, ne rien faire
             if self.focusWidget() == self.ui.quitterButton:
                 return
-            # Si le focus est sur le tableau, ne rien faire
             if self.focusWidget() == self.ui.tableWidget:
                 return
-            # Sinon, simuler un clic sur le bouton Valider
             self.add_new_row()
         else:
             super().keyPressEvent(event)
+
+    def open_calculette(self):
+        """Ouvre la calculette."""
+        self.calculette_window = CalculetteDialog()  # Modification ici
+        self.calculette_window.exec()  # Affichez la fenêtre de la calculette

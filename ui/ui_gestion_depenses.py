@@ -62,7 +62,7 @@ class Ui_Dialog(object):
         self.calendarWidget.setDateEditEnabled(True)
         self.splitter = QSplitter(Dialog)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setGeometry(QRect(360, 20, 368, 32))
+        self.splitter.setGeometry(QRect(240, 20, 521, 32))
         self.splitter.setOrientation(Qt.Orientation.Horizontal)
         self.label = QLabel(self.splitter)
         self.label.setObjectName(u"label")
@@ -234,7 +234,7 @@ class Ui_Dialog(object):
         ___qtablewidgetitem6.setText(QCoreApplication.translate("Dialog", u"Validation", None));
         ___qtablewidgetitem7 = self.tableWidget.horizontalHeaderItem(7)
         ___qtablewidgetitem7.setText(QCoreApplication.translate("Dialog", u"Commentaire", None));
-        self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Gestion Des D\u00e9penses</span></p></body></html>", None))
+        self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Gestion Des D\u00e9penses : </span></p></body></html>", None))
         self.moisLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Mois</span></p></body></html>", None))
         self.anneeLabel.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p><span style=\" font-size:18pt;\">Ann\u00e9e</span></p></body></html>", None))
         self.labeltotalttc.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Total TTC</p></body></html>", None))
