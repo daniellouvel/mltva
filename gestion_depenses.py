@@ -91,8 +91,8 @@ class GestionDepenses(QDialog):
         self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
 
-        # Connexion du bouton pour ouvrir la calculette
-        self.ui.push_calculettettc.clicked.connect(self.open_calculette)  # Ajout de la connexion
+        # Connexion du bouton pour calculer directement
+        self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)  # Connexion du bouton
 
         # Configuration des boutons par défaut
         self.ui.pushButtonValider.setDefault(True)
@@ -422,9 +422,21 @@ class GestionDepenses(QDialog):
         else:
             super().keyPressEvent(event)
 
-    def open_calculette(self):
-        """Ouvre la calculette."""
-        self.calculette_window = CalculetteDialog(self)  # Passer l'instance de GestionDepenses
-        tva_value = self.ui.comboBoxTVA.currentText()  # Récupérer la valeur du taux de TVA
-        self.calculette_window.set_initial_values(tva_value)  # Définir la valeur dans la calculette
-        self.calculette_window.exec()  # Affichez la fenêtre de la calculette
+    def calculate_and_update(self):
+        """Calcule le montant TTC et met à jour les champs sans ouvrir la calculette."""
+        try:
+            # Récupérer le montant de la TVA
+            tva_paid = float(self.ui.lineEditMontant.text())  # Montant de la TVA
+            # Récupérer le taux de TVA sélectionné
+            tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))  # Taux TVA
+
+            # Calculer le montant TTC
+            ttc = tva_paid / (tva_rate / 100) + tva_paid  # Formule pour calculer le montant TTC
+
+            # Mettre à jour les champs
+            self.ui.lineEditMontantTVA.setText(f"{tva_paid:.2f}")  # Mettre à jour lineEditMontantTVA avec le montant d'entrée
+            self.ui.lineEditMontant.setText(f"{ttc:.2f}")  # Mettre à jour lineEditMontant avec le montant TTC
+            print(f"Montant TTC calculé: {ttc:.2f}")  # Afficher le montant TTC dans la console
+
+        except ValueError:
+            QMessageBox.warning(self, "Erreur", "Veuillez entrer un montant valide.")

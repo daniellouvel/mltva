@@ -55,8 +55,8 @@ class GestionRecettes(QDialog):
         self.ui.pushButtonSuprimer.clicked.connect(self.delete_row)
         self.ui.pushButtonEffacer.clicked.connect(self.clear_fields)
 
-        # Connexion du bouton pour ouvrir la calculette
-        self.ui.push_calculettettc.clicked.connect(self.open_calculette)  # Ajout de la connexion
+        # Connexion du bouton pour calculer directement
+        self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)  # Connexion du bouton
 
         # Connecter les événements pour calculer le montant de la TVA
         self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
@@ -380,10 +380,21 @@ class GestionRecettes(QDialog):
         except Exception as e:
             handle_exception(e, "Erreur lors de la suppression de la recette")
 
-    def open_calculette(self):
-        """Ouvre la calculette."""
-        self.calculette_window = CalculetteDialog(self)  # Passer l'instance de GestionRecettes
-        montant_value = self.ui.lineEditMontant.text()  # Récupérer la valeur du montant
-        tva_value = self.ui.comboBoxTVA.currentText()  # Récupérer la valeur du taux de TVA
-        self.calculette_window.set_initial_values(tva_value, montant_value)  # Définir la valeur dans la calculette
-        self.calculette_window.exec()  # Affichez la fenêtre de la calculette
+    def calculate_and_update(self):
+        """Calcule le montant TTC et met à jour les champs sans ouvrir la calculette."""
+        try:
+            # Récupérer le montant de la TVA
+            tva_paid = float(self.ui.lineEditMontant.text())  # Montant de la TVA
+            # Récupérer le taux de TVA sélectionné
+            tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))  # Taux TVA
+
+            # Calculer le montant TTC
+            ttc = tva_paid / (tva_rate / 100) + tva_paid  # Formule pour calculer le montant TTC
+
+            # Mettre à jour les champs
+            self.ui.lineEditMontantTVA.setText(f"{tva_paid:.2f}")  # Mettre à jour lineEditMontantTVA avec le montant d'entrée
+            self.ui.lineEditMontant.setText(f"{ttc:.2f}")  # Mettre à jour lineEditMontant avec le montant TTC
+            print(f"Montant TTC calculé: {ttc:.2f}")  # Afficher le montant TTC dans la console
+
+        except ValueError:
+            QMessageBox.warning(self, "Erreur", "Veuillez entrer un montant valide.")
