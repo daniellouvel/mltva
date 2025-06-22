@@ -1,0 +1,57 @@
+tu es un expert python sqllite tu vas maider a modifier progame qui sapelle MLTVA 
+il est essentiel que toutes les fonctionnalités déjà en place dans les fichiers originaux soient respectées tout en intégrant les corrections nécessaires.
+une bdd mlbdd contenat les tables suivante existe :
+tables : contacts
+id INTEGER PRIMARY KEY AUTOINCREMENT
+nom TEXT
+prenom TEXT
+telephone TEXT
+email TEXT
+adresse_ligne1 TEXT
+adresse_ligne2 TEXT
+ville TEXT
+code_postal TEXT
+pays TEXT
+Table : tva
+id INTEGER PRIMARY KEY AUTOINCREMENT
+taux REAL NOT NULL
+description TEXT
+Table : recettes
+id INTEGER PRIMARY KEY AUTOINCREMENT
+date TEXT NOT NULL
+numero_remise TEXT
+client TEXT NOT NULL
+numero_facture TEXT NOT NULL
+montant_remise REAL DEFAULT 0.0
+tva_id INTEGER NOT NULL
+montant_tva REAL DEFAULT 0.0
+Foreign Key : client REFERENCES contacts(client)
+Foreign Key : tva_id REFERENCES tva(id)
+Table : depenses
+id INTEGER PRIMARY KEY AUTOINCREMENT
+date TEXT NOT NULL
+fournisseur TEXT NOT NULL
+ttc REAL NOT NULL
+tva_id INTEGER NOT NULL
+montant_tva REAL DEFAULT 0.0
+validation TEXT DEFAULT 'Non'
+les code doivent avoir en premiere ligne le nom du code mumerot de vertion diferent a chaque modification
+voci l'arboresence du code
+projet/
+│
+├── fichiers_ui_qt/          # Répertoire contenant les fichiers .ui
+│   ├── main_window.ui
+│   └── gestion_depenses.ui
+│
+├── ui/                      # Répertoire pour les fichiers Python générés
+│   ├── ui_main_window.py
+│   └── ui_gestion_depenses.py
+│
+├── data                     # Répertoire pour la bdd
+|      └── mlbdd.db
+|
+├── database.py              # Gestion de la base de données
+├── main.py                  # Logique principale de l'application
+└── gestion_depenses.py      # Interface utilisateur pour la gestion des dépenses
+les fichier ui_main_window.py ui_gestion_depenses.py son generet dant qt d
+ne me donne que les code modifier complet

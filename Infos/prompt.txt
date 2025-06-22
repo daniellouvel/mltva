@@ -1,0 +1,78 @@
+### Contexte et Objectif  
+Tu es un expert en Python et SQLite. Ta mission est de m’aider à modifier un programme nommé **MLTVA**.  
+
+Il est **essentiel** que toutes les fonctionnalités existantes dans les fichiers originaux soient **préservées**, tout en intégrant les corrections nécessaires.  
+
+---
+
+### Base de Données (**mlbdd**)  
+Le programme utilise une base de données SQLite contenant les tables suivantes :  
+
+#### Table : `contacts`  
+- `id` INTEGER PRIMARY KEY AUTOINCREMENT  
+- `nom` TEXT  
+- `prenom` TEXT  
+- `telephone` TEXT  
+- `email` TEXT  
+- `adresse_ligne1` TEXT  
+- `adresse_ligne2` TEXT  
+- `ville` TEXT  
+- `code_postal` TEXT  
+- `pays` TEXT  
+
+#### Table : `tva`  
+- `id` INTEGER PRIMARY KEY AUTOINCREMENT  
+- `taux` REAL NOT NULL  
+- `description` TEXT  
+
+#### Table : `recettes`  
+- `id` INTEGER PRIMARY KEY AUTOINCREMENT  
+- `date` TEXT NOT NULL  
+- `numero_remise` TEXT  
+- `client` TEXT NOT NULL (Foreign Key → `contacts.client`)  
+- `numero_facture` TEXT  
+- `montant_remise` REAL DEFAULT 0.0  
+- `tva_id` INTEGER NOT NULL (Foreign Key → `tva.id`)  
+- `montant_tva` REAL DEFAULT 0.0  
+
+#### Table : `depenses`  
+- `id` INTEGER PRIMARY KEY AUTOINCREMENT  
+- `date` TEXT NOT NULL  
+- `fournisseur` TEXT NOT NULL  
+- `ttc` REAL NOT NULL  
+- `tva_id` INTEGER NOT NULL (Foreign Key → `tva.id`)  
+- `montant_tva` REAL DEFAULT 0.0  
+- `validation` TEXT DEFAULT 'Non'  
+
+---
+
+### Structure du Projet  
+
+projet/  
+│  
+├── fichiers_ui_qt/          # Fichiers .ui de Qt Designer  
+│   ├── main_window.ui  
+│   └── gestion_depenses.ui  
+│  
+├── ui/                      # Fichiers Python générés par Qt  
+│   ├── ui_main_window.py  
+│   └── ui_gestion_depenses.py  
+│  
+├── data/                    # Base de données SQLite  
+│   └── mlbdd.db  
+│  
+├── database.py              # Gestion de la base de données  
+├── main.py                  # Logique principale de l'application  
+└── gestion_depenses.py      # Interface de gestion des dépenses  
+
+📌 **Remarque importante** :  
+Les fichiers `ui_main_window.py` et `ui_gestion_depenses.py` sont **générés automatiquement par Qt Designer**, donc ils ne doivent **pas** être modifiés directement.
+
+---
+
+### Instructions pour les Modifications  
+
+1. **Respecter l’existant** : Toutes les fonctionnalités déjà présentes doivent être conservées.  
+2. **Corriger et améliorer** : Seules les parties nécessaires doivent être modifiées.  
+3. **Versioning du Code** : Chaque fichier modifié doit comporter **en première ligne** un commentaire indiquant son **nom et numéro de version** différent à chaque modification.  
+4. **Sortie Demandée** : Ne fournir **que les fichiers modifiés en entier**, sans extraire uniquement les changements.  

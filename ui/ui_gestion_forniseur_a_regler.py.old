@@ -1,0 +1,107 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'gestion_forniseur_a_regler.ui'
+##
+## Created by: Qt User Interface Compiler version 6.8.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QDialog, QGridLayout,
+    QHeaderView, QLabel, QLineEdit, QPushButton,
+    QSizePolicy, QSplitter, QTableWidget, QTableWidgetItem,
+    QWidget)
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        if not Dialog.objectName():
+            Dialog.setObjectName(u"Dialog")
+        Dialog.resize(507, 787)
+        self.tableWidget_a_regler = QTableWidget(Dialog)
+        if (self.tableWidget_a_regler.columnCount() < 5):
+            self.tableWidget_a_regler.setColumnCount(5)
+        __qtablewidgetitem = QTableWidgetItem()
+        self.tableWidget_a_regler.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        __qtablewidgetitem1 = QTableWidgetItem()
+        self.tableWidget_a_regler.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        __qtablewidgetitem2 = QTableWidgetItem()
+        self.tableWidget_a_regler.setHorizontalHeaderItem(2, __qtablewidgetitem2)
+        __qtablewidgetitem3 = QTableWidgetItem()
+        self.tableWidget_a_regler.setHorizontalHeaderItem(3, __qtablewidgetitem3)
+        __qtablewidgetitem4 = QTableWidgetItem()
+        self.tableWidget_a_regler.setHorizontalHeaderItem(4, __qtablewidgetitem4)
+        self.tableWidget_a_regler.setObjectName(u"tableWidget_a_regler")
+        self.tableWidget_a_regler.setEnabled(True)
+        self.tableWidget_a_regler.setGeometry(QRect(0, 60, 500, 631))
+        self.tableWidget_a_regler.setMinimumSize(QSize(500, 0))
+        self.tableWidget_a_regler.setAlternatingRowColors(True)
+        self.tableWidget_a_regler.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableWidget_a_regler.verticalHeader().setVisible(False)
+        self.splitter = QSplitter(Dialog)
+        self.splitter.setObjectName(u"splitter")
+        self.splitter.setGeometry(QRect(70, 10, 368, 32))
+        self.splitter.setOrientation(Qt.Orientation.Horizontal)
+        self.label = QLabel(self.splitter)
+        self.label.setObjectName(u"label")
+        self.splitter.addWidget(self.label)
+        self.gridLayoutWidget = QWidget(Dialog)
+        self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
+        self.gridLayoutWidget.setGeometry(QRect(90, 690, 391, 83))
+        self.gridLayout = QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.pushButtonValider = QPushButton(self.gridLayoutWidget)
+        self.pushButtonValider.setObjectName(u"pushButtonValider")
+
+        self.gridLayout.addWidget(self.pushButtonValider, 0, 2, 1, 1)
+
+        self.lineEdittotalttc = QLineEdit(self.gridLayoutWidget)
+        self.lineEdittotalttc.setObjectName(u"lineEdittotalttc")
+
+        self.gridLayout.addWidget(self.lineEdittotalttc, 0, 1, 1, 1)
+
+        self.labeltotalttc = QLabel(self.gridLayoutWidget)
+        self.labeltotalttc.setObjectName(u"labeltotalttc")
+
+        self.gridLayout.addWidget(self.labeltotalttc, 0, 0, 1, 1)
+
+        self.quitterButton = QPushButton(self.gridLayoutWidget)
+        self.quitterButton.setObjectName(u"quitterButton")
+
+        self.gridLayout.addWidget(self.quitterButton, 0, 3, 1, 1)
+
+        self.splitter.raise_()
+        self.tableWidget_a_regler.raise_()
+        self.gridLayoutWidget.raise_()
+
+        self.retranslateUi(Dialog)
+
+        QMetaObject.connectSlotsByName(Dialog)
+    # setupUi
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
+        ___qtablewidgetitem = self.tableWidget_a_regler.horizontalHeaderItem(0)
+        ___qtablewidgetitem.setText(QCoreApplication.translate("Dialog", u"Rep\u00e8re", None));
+        ___qtablewidgetitem1 = self.tableWidget_a_regler.horizontalHeaderItem(1)
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("Dialog", u"Date", None));
+        ___qtablewidgetitem2 = self.tableWidget_a_regler.horizontalHeaderItem(2)
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("Dialog", u"Fournisseur", None));
+        ___qtablewidgetitem3 = self.tableWidget_a_regler.horizontalHeaderItem(3)
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("Dialog", u"TTC", None));
+        ___qtablewidgetitem4 = self.tableWidget_a_regler.horizontalHeaderItem(4)
+        ___qtablewidgetitem4.setText(QCoreApplication.translate("Dialog", u"Validation", None));
+        self.label.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:700;\">Fournisseur \u00e0 R\u00e9gler</span></p></body></html>", None))
+        self.pushButtonValider.setText(QCoreApplication.translate("Dialog", u"Valider", None))
+        self.labeltotalttc.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p>Total TTC</p></body></html>", None))
+        self.quitterButton.setText(QCoreApplication.translate("Dialog", u"Quitter", None))
+    # retranslateUi
+
