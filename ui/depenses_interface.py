@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox, QVBoxLayout, QTableWidget, QLabel, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox, QVBoxLayout, QTableWidget, QLabel, QHBoxLayout, QPushButton, QFileDialog
 from PySide6.QtCore import Qt, QEvent, QDate
 from ui.ui_gestion_depenses import Ui_Dialog
 from ui.base_gestion import GestionBase
@@ -15,6 +15,7 @@ from database import DatabaseManager
 from datetime import datetime
 from constants import ERROR_MESSAGES, UI_CONFIG
 from calculette import CalculetteDialog
+from scan_facture import scan_facture
 
 TABLE_COLUMNS = {
     "REPERE": 0,
@@ -70,6 +71,7 @@ class GestionDepenses(GestionBase):
         self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
         self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)
+        self.ui.push_scan_facture.clicked.connect(self.on_scan_facture)
         self.ui.pushButtonValider.setDefault(True)
         self.ui.quitterButton.setAutoDefault(False)
         self.ui.quitterButton.setDefault(False)
@@ -358,3 +360,39 @@ class GestionDepenses(GestionBase):
         except Exception as e:
             handle_exception(e, "Erreur lors de la suppression de la dépense")
 
+    def on_scan_facture(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Sélectionner une facture",
+            "", "Factures (*.pdf *.png *.jpg *.jpeg *.tif *.tiff);;Tous (*)"
+        )
+        if not file_path:
+            return
+        try:
+            result = scan_facture(file_path)
+
+            if result["date"]:
+                self.ui.lineEditDate.setText(result["date"])
+            if result["fournisseur"]:
+                self.ui.comboBoxFournisseur.setCurrentText(result["fournisseur"])
+            if result["montant"]:
+                self.ui.lineEditMontant.setText(result["montant"])
+            if result["tva_rate"]:
+                self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
+
+            champs_trouves = [k for k, v in result.items() if v and k != "texte_brut"]
+            if champs_trouves:
+                QMessageBox.information(
+                    self, "Scan terminé",
+                    f"Champs détectés : {', '.join(champs_trouves)}\n\n"
+                    "Vérifiez les valeurs avant de valider."
+                )
+            else:
+                QMessageBox.warning(
+                    self, "Scan incomplet",
+                    "Aucun champ n'a pu être extrait automatiquement.\n"
+                    "Vérifiez la qualité de l'image et remplissez manuellement."
+                )
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Tesseract manquant", str(e))
+        except Exception as e:
+            handle_exception(e, "Erreur lors du scan de la facture")

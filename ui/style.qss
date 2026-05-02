@@ -170,6 +170,17 @@ QPushButton[objectName="push_calculettettc"]:pressed {
     background-color: #6C3483;
 }
 
+/* ── Scanner facture ── */
+QPushButton[objectName="push_scan_facture"] {
+    background-color: #16A085;
+}
+QPushButton[objectName="push_scan_facture"]:hover {
+    background-color: #138D75;
+}
+QPushButton[objectName="push_scan_facture"]:pressed {
+    background-color: #0E6655;
+}
+
 /* ── Boutons fenêtre principale ── */
 QPushButton[objectName="depensesButton"] {
     background-color: #E74C3C;
