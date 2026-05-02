@@ -74,8 +74,10 @@ class GestionFournisseurARegler(QDialog):
                         item = QTableWidgetItem(str(data))
                     self.ui.tableWidget_a_regler.setItem(row_number, column_number, item)
 
-                # Ajouter à la somme des montants ttc
-                total_ttc += float(row_data['ttc']) if row_data['ttc'] is not None else 0.0
+                try:
+                    total_ttc += float(row_data['ttc']) if row_data['ttc'] is not None else 0.0
+                except (ValueError, TypeError):
+                    pass
 
             # Mettre à jour le champ lineEdittotalttc avec la somme formatée
             self.ui.lineEdittotalttc.setText(f"{total_ttc:,.2f} €".replace(',', ' ').replace('.', ','))
