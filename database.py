@@ -94,6 +94,19 @@ class DatabaseManager:
             print(ERROR_MESSAGES["DATABASE_ERROR"])
             return []
 
+    def fetch_one(self, query, params=None):
+        """Exécute une requête SELECT et retourne une seule ligne."""
+        try:
+            cursor = self.conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            return cursor.fetchone()  # Renvoie une seule ligne
+        except Error as e:
+            print(ERROR_MESSAGES["DATABASE_ERROR"])
+            return None  # Retourne None si une erreur se produit
+
     def execute_query(self, query, params=None):
         """Exécute une requête SQL (INSERT, UPDATE, DELETE)."""
         try:

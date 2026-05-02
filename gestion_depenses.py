@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox, QVBoxLayout, QTableWidget, QLabel, QHBoxLayout, QPushButton
 from PySide6.QtCore import Qt, QEvent, QDate
 from ui.ui_gestion_depenses import Ui_Dialog
 from util import (
@@ -291,17 +291,126 @@ class GestionDepenses(QDialog):
             handle_exception(e, "Erreur lors de la récupération des données")
             return None
 
+    def check_duplicate_expense(self, ttc, fournisseur):
+        """Vérifie si une dépense avec le même montant TTC et le même fournisseur existe déjà et renvoie les doublons."""
+        try:
+            # Récupérer le mois et l'année actuels
+            current_month = self.mois
+            current_year = self.annee
+
+            # Convertir le mois en format numérique
+            month_number = convert_month_to_number(current_month)
+
+            # Requête pour vérifier les doublons dans le mois actuel
+            query_current = """
+            SELECT * FROM depenses
+            WHERE ttc = ? AND fournisseur = ? AND strftime('%m', date) = ? AND strftime('%Y', date) = ?
+            """
+            duplicates_current = self.db_manager.fetch_all(query_current, (ttc, fournisseur, f"{month_number:02d}", current_year))
+
+            # Requête pour vérifier les doublons dans le mois précédent
+            previous_month = month_number - 1 if month_number > 1 else 12
+            previous_year = current_year if month_number > 1 else current_year - 1
+
+            query_previous = """
+            SELECT * FROM depenses
+            WHERE ttc = ? AND fournisseur = ? AND strftime('%m', date) = ? AND strftime('%Y', date) = ?
+            """
+            duplicates_previous = self.db_manager.fetch_all(query_previous, (ttc, fournisseur, f"{previous_month:02d}", previous_year))
+
+            # Combiner les doublons des deux mois
+            return duplicates_current + duplicates_previous
+
+        except Exception as e:
+            handle_exception(e, "Erreur lors de la vérification des doublons")
+            return []  # Retourner une liste vide en cas d'erreur
+
+    def show_duplicate_expenses(self, duplicates):
+        """Affiche les dépenses en doublon dans un tableau."""
+        if not duplicates:
+            QMessageBox.information(self, "Aucun doublon", "Aucun doublon trouvé.")
+            return
+
+        # Créer une nouvelle fenêtre pour afficher les doublons
+        duplicate_dialog = QDialog(self)
+        duplicate_dialog.setWindowTitle("Dépenses en Doublon")
+        layout = QVBoxLayout(duplicate_dialog)
+
+        # Ajouter un message d'information
+        message_label = QLabel("Ces lignes existent déjà. Voulez-vous les ajouter ?")
+        layout.addWidget(message_label)
+
+        # Créer un tableau pour afficher les doublons
+        table_widget = QTableWidget()
+        table_widget.setColumnCount(len(TABLE_COLUMNS))
+        table_widget.setHorizontalHeaderLabels(COLUMN_HEADERS)
+        table_widget.setRowCount(len(duplicates))
+
+        for row_number, row_data in enumerate(duplicates):
+            for column_number, data in enumerate(row_data):
+                item = QTableWidgetItem(str(data))
+                table_widget.setItem(row_number, column_number, item)
+
+        layout.addWidget(table_widget)
+
+        # Ajouter des boutons Oui et Non
+        button_layout = QHBoxLayout()
+        yes_button = QPushButton("Oui")
+        no_button = QPushButton("Non")
+
+        button_layout.addWidget(yes_button)
+        button_layout.addWidget(no_button)
+        layout.addLayout(button_layout)
+
+        duplicate_dialog.setLayout(layout)
+
+        # Connecter les boutons à des actions
+        yes_button.clicked.connect(lambda: self.add_duplicate_expenses(duplicates, duplicate_dialog))
+        no_button.clicked.connect(duplicate_dialog.reject)  # Fermer la fenêtre si Non est cliqué
+
+        # Agrandir la fenêtre pour afficher tout le contenu
+        duplicate_dialog.resize(800, 600)  # Ajustez la taille selon vos besoins
+
+        duplicate_dialog.exec_()  # Afficher la fenêtre modale
+
+    def add_duplicate_expenses(self, duplicates, dialog):
+        """Ajoute les dépenses en doublon à la base de données."""
+        for row_data in duplicates:
+            # Convertir l'objet sqlite3.Row en liste
+            row_data = list(row_data)  # Convertir en liste pour un accès facile
+            print(f"Données de doublon : {row_data}")  # Afficher les données pour le débogage
+
+            if len(row_data) < 7:
+                QMessageBox.warning(self, "Erreur", "Les données de doublon sont incomplètes.")
+                continue  # Passer à la prochaine ligne si les données sont incomplètes
+
+            # Extraire les données nécessaires
+            date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire = row_data[:7]  # Prendre seulement les 7 premiers éléments
+            self.db_manager.insert_depense(date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
+
+        QMessageBox.information(self, "Succès", "Les doublons ont été ajoutés avec succès.")
+        dialog.accept()  # Fermer la fenêtre
+
     def add_new_row(self):
         """Ajoute une nouvelle dépense dans la table 'depenses'."""
         if not self.validate_fields():
             return
 
         try:
+            # Récupérer les données de la dépense
             depense_data = self._get_depense_data()
             if not depense_data:
                 return
 
-            fournisseur = self.ui.comboBoxFournisseur.currentText()
+            formatted_date, fournisseur, ttc, tva_rate, montant_tva, validation, commentaire = depense_data
+
+            # Vérifier les doublons
+            duplicates = self.check_duplicate_expense(ttc, fournisseur)
+            if duplicates:  # Vérifiez si des doublons existent
+                self.show_duplicate_expenses(duplicates)  # Afficher les doublons
+                return  # Ne pas continuer si des doublons existent
+
+            # Vérifier si le fournisseur existe
             if not self.db_manager.fournisseur_exists(fournisseur):
                 response = QMessageBox.question(self, "Fournisseur non trouvé",
                                                 f"Le fournisseur '{fournisseur}' n'existe pas. Voulez-vous l'ajouter ?",
