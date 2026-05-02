@@ -1,0 +1,327 @@
+/* ── Fond général ── */
+QMainWindow, QDialog, QWidget {
+    background-color: #F0F4F8;
+    color: #2C3E50;
+    font-family: "Segoe UI";
+    font-size: 10pt;
+}
+
+/* ── Barre de menu ── */
+QMenuBar {
+    background-color: #2C5F8A;
+    color: #FFFFFF;
+    padding: 2px;
+}
+QMenuBar::item:selected {
+    background-color: #4A90D9;
+    border-radius: 4px;
+}
+QMenu {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+}
+QMenu::item:selected {
+    background-color: #4A90D9;
+    color: #FFFFFF;
+}
+
+/* ── Labels titre (mois/année dans les fenêtres) ── */
+QLabel[objectName="moisLabel"],
+QLabel[objectName="anneeLabel"] {
+    color: #2C5F8A;
+    font-weight: bold;
+}
+
+/* ── Champs de saisie ── */
+QLineEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+    border-radius: 4px;
+    padding: 4px 8px;
+    selection-background-color: #4A90D9;
+}
+QLineEdit:focus {
+    border: 2px solid #4A90D9;
+}
+QLineEdit:read-only {
+    background-color: #ECF0F1;
+    color: #7F8C8D;
+}
+
+/* ── ComboBox ── */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+    border-radius: 4px;
+    padding: 4px 8px;
+    min-width: 80px;
+}
+QComboBox:focus {
+    border: 2px solid #4A90D9;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+    selection-background-color: #4A90D9;
+    selection-color: #FFFFFF;
+}
+
+/* ── CheckBox ── */
+QCheckBox {
+    spacing: 6px;
+}
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #BDC3C7;
+    border-radius: 3px;
+    background-color: #FFFFFF;
+}
+QCheckBox::indicator:checked {
+    background-color: #27AE60;
+    border-color: #27AE60;
+}
+
+/* ── Boutons généraux ── */
+QPushButton {
+    background-color: #95A5A6;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 16px;
+    font-weight: bold;
+    min-width: 80px;
+}
+QPushButton:hover {
+    background-color: #7F8C8D;
+}
+QPushButton:pressed {
+    background-color: #6C7A7D;
+}
+QPushButton:disabled {
+    background-color: #D5D8DC;
+    color: #AEB6BF;
+}
+
+/* ── Valider ── */
+QPushButton[objectName="pushButtonValider"] {
+    background-color: #27AE60;
+}
+QPushButton[objectName="pushButtonValider"]:hover {
+    background-color: #229954;
+}
+QPushButton[objectName="pushButtonValider"]:pressed {
+    background-color: #1E8449;
+}
+
+/* ── Modifier ── */
+QPushButton[objectName="pushButtonModifier"] {
+    background-color: #2C5F8A;
+}
+QPushButton[objectName="pushButtonModifier"]:hover {
+    background-color: #4A90D9;
+}
+QPushButton[objectName="pushButtonModifier"]:pressed {
+    background-color: #1A3D5C;
+}
+
+/* ── Effacer ── */
+QPushButton[objectName="pushButtonEffacer"] {
+    background-color: #E67E22;
+}
+QPushButton[objectName="pushButtonEffacer"]:hover {
+    background-color: #CA6F1E;
+}
+QPushButton[objectName="pushButtonEffacer"]:pressed {
+    background-color: #A04000;
+}
+
+/* ── Supprimer ── */
+QPushButton[objectName="pushButtonSuprimer"] {
+    background-color: #E74C3C;
+}
+QPushButton[objectName="pushButtonSuprimer"]:hover {
+    background-color: #CB4335;
+}
+QPushButton[objectName="pushButtonSuprimer"]:pressed {
+    background-color: #A93226;
+}
+
+/* ── Quitter ── */
+QPushButton[objectName="quitterButton"] {
+    background-color: #5D6D7E;
+}
+QPushButton[objectName="quitterButton"]:hover {
+    background-color: #4A5568;
+}
+
+/* ── Calculette TTC ── */
+QPushButton[objectName="push_calculettettc"] {
+    background-color: #8E44AD;
+}
+QPushButton[objectName="push_calculettettc"]:hover {
+    background-color: #7D3C98;
+}
+QPushButton[objectName="push_calculettettc"]:pressed {
+    background-color: #6C3483;
+}
+
+/* ── Boutons fenêtre principale ── */
+QPushButton[objectName="depensesButton"] {
+    background-color: #E74C3C;
+    font-size: 11pt;
+    padding: 8px 16px;
+}
+QPushButton[objectName="depensesButton"]:hover {
+    background-color: #CB4335;
+}
+QPushButton[objectName="recettesButton"] {
+    background-color: #27AE60;
+    font-size: 11pt;
+    padding: 8px 16px;
+}
+QPushButton[objectName="recettesButton"]:hover {
+    background-color: #229954;
+}
+QPushButton[objectName="pushButton_export_pdf"] {
+    background-color: #2C5F8A;
+    font-size: 11pt;
+    padding: 8px 16px;
+}
+QPushButton[objectName="pushButton_export_pdf"]:hover {
+    background-color: #4A90D9;
+}
+QPushButton[objectName="pusharegeler"] {
+    background-color: #E67E22;
+    font-size: 11pt;
+    padding: 8px 16px;
+}
+QPushButton[objectName="pusharegeler"]:hover {
+    background-color: #CA6F1E;
+}
+
+/* ── Tableau ── */
+QTableWidget {
+    background-color: #FFFFFF;
+    alternate-background-color: #EBF5FB;
+    gridline-color: #D5D8DC;
+    border: 1px solid #BDC3C7;
+    border-radius: 4px;
+    selection-background-color: #AED6F1;
+    selection-color: #2C3E50;
+}
+QTableWidget::item {
+    padding: 4px;
+}
+QHeaderView::section {
+    background-color: #2C5F8A;
+    color: #FFFFFF;
+    font-weight: bold;
+    padding: 6px;
+    border: none;
+    border-right: 1px solid #4A90D9;
+}
+QHeaderView::section:last {
+    border-right: none;
+}
+
+/* ── GroupBox ── */
+QGroupBox {
+    border: 1px solid #BDC3C7;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    font-weight: bold;
+    color: #2C5F8A;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 6px;
+}
+
+/* ── Calendrier ── */
+QCalendarWidget QToolButton {
+    background-color: #2C5F8A;
+    color: white;
+    border-radius: 4px;
+    padding: 4px;
+}
+QCalendarWidget QMenu {
+    background-color: #FFFFFF;
+}
+QCalendarWidget QAbstractItemView:enabled {
+    background-color: #FFFFFF;
+    selection-background-color: #4A90D9;
+    selection-color: #FFFFFF;
+}
+
+/* ── Scrollbars ── */
+QScrollBar:vertical {
+    background: #F0F4F8;
+    width: 10px;
+    border-radius: 5px;
+}
+QScrollBar::handle:vertical {
+    background: #BDC3C7;
+    border-radius: 5px;
+    min-height: 20px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #4A90D9;
+}
+QScrollBar:horizontal {
+    background: #F0F4F8;
+    height: 10px;
+    border-radius: 5px;
+}
+QScrollBar::handle:horizontal {
+    background: #BDC3C7;
+    border-radius: 5px;
+    min-width: 20px;
+}
+QScrollBar::handle:horizontal:hover {
+    background: #4A90D9;
+}
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0px;
+    height: 0px;
+}
+
+/* ── Onglets (Synthèse) ── */
+QTabWidget::pane {
+    border: 1px solid #BDC3C7;
+    border-radius: 4px;
+    background-color: #FFFFFF;
+}
+QTabBar::tab {
+    background-color: #D5D8DC;
+    color: #2C3E50;
+    padding: 6px 16px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 2px;
+}
+QTabBar::tab:selected {
+    background-color: #2C5F8A;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+QTabBar::tab:hover:!selected {
+    background-color: #AED6F1;
+}
+
+/* ── Totaux en bas (lecture seule) ── */
+QLineEdit[objectName="lineEdittotalttc"],
+QLineEdit[objectName="lineEditmontanttva"],
+QLineEdit[objectName="lineEdimontanttotal"],
+QLineEdit[objectName="lineEdittotalmontanttva"] {
+    background-color: #D6EAF8;
+    border: 1px solid #4A90D9;
+    font-weight: bold;
+    color: #1A5276;
+}
