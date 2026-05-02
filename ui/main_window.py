@@ -13,6 +13,7 @@ from pdf_generator import PDFGenerator
 from gestion_forniseur_a_regler import GestionFournisseurARegler
 from utils.backup import backup_database
 from ui.restore_dialog import RestoreDialog
+from ui.synthese_interface import SyntheseDialog
 
 
 class MainWindow(QMainWindow):
@@ -32,6 +33,10 @@ class MainWindow(QMainWindow):
         self.ui.actionContacts.triggered.connect(self.open_contacts_manager)
 
         from PySide6.QtGui import QAction
+        self.action_synthese = QAction("Synthèse...", self)
+        self.action_synthese.triggered.connect(self.open_synthese)
+        self.ui.menuConfig.addAction(self.action_synthese)
+
         self.action_restaurer = QAction("Restaurer une sauvegarde...", self)
         self.action_restaurer.triggered.connect(self.open_restore_dialog)
         self.ui.menuConfig.addAction(self.action_restaurer)
@@ -134,6 +139,10 @@ class MainWindow(QMainWindow):
     def open_contacts_manager(self):
         self.contacts_manager = ContactsManager()
         self.contacts_manager.show()
+
+    def open_synthese(self):
+        dialog = SyntheseDialog(self)
+        dialog.exec()
 
     def open_restore_dialog(self):
         dialog = RestoreDialog(self)
