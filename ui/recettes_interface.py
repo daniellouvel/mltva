@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QLineEdit, QComboBox
 from PySide6.QtCore import Qt, QEvent, QDate
 from ui.ui_gestion_Recettes import Ui_Dialog
+from ui.base_gestion import GestionBase
 from util import (
     PeriodeManager,
     convert_month_to_number,
@@ -14,7 +15,7 @@ from datetime import datetime
 from constants import UI_CONFIG
 
 
-class GestionRecettes(QDialog):
+class GestionRecettes(GestionBase):
     def __init__(self):
         super().__init__()
         self.ui = Ui_Dialog()
@@ -55,27 +56,6 @@ class GestionRecettes(QDialog):
         self.ui.lineEditMontantTVA.setReadOnly(True)
         self.ui.lineEditDate.setFocus()
 
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if isinstance(obj, (QLineEdit, QComboBox)):
-                    return False
-                if obj in (self.ui.quitterButton, self.ui.tableWidget):
-                    return False
-                self.add_new_row()
-                return True
-        return super().eventFilter(obj, event)
-
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            if isinstance(self.focusWidget(), (QLineEdit, QComboBox)):
-                return
-            if self.focusWidget() in (self.ui.quitterButton, self.ui.tableWidget):
-                return
-            self.add_new_row()
-        else:
-            super().keyPressEvent(event)
-
     def configure_table(self):
         self.ui.tableWidget.setColumnCount(9)
         self.ui.tableWidget.setHorizontalHeaderLabels(
@@ -92,27 +72,6 @@ class GestionRecettes(QDialog):
         self.selected_month = convert_month_to_number(self.mois)
         self.selected_year = int(self.annee)
         self.load_recettes()
-
-    def show_calendar_on_focus(self, event):
-        try:
-            start_date = QDate(self.selected_year, self.selected_month, 1)
-            if self.selected_month == 12:
-                end_date = QDate(self.selected_year, 12, 31)
-            else:
-                next_month = QDate(self.selected_year, self.selected_month + 1, 1)
-                end_date = next_month.addDays(-1)
-            self.ui.calendarWidget.setMinimumDate(start_date)
-            self.ui.calendarWidget.setMaximumDate(end_date)
-            self.ui.calendarWidget.setVisible(True)
-        except Exception as e:
-            handle_exception(e, "Erreur lors de l'affichage du calendrier")
-
-    def on_calendar_date_clicked(self, date):
-        try:
-            self.ui.lineEditDate.setText(f"{date.day():02d}/{date.month():02d}/{date.year()}")
-            self.ui.calendarWidget.setVisible(False)
-        except Exception as e:
-            handle_exception(e, "Erreur lors de la sélection de la date")
 
     def load_recettes(self):
         mois_numerique = convert_month_to_number(self.mois)
@@ -138,13 +97,6 @@ class GestionRecettes(QDialog):
             total_montant_tva += float(row_data[7] or 0)
         self.ui.lineEdimontanttotal.setText(f"{total_montant:.2f}")
         self.ui.lineEdittotalmontanttva.setText(f"{total_montant_tva:.2f}")
-
-    def calculate_tva(self):
-        montant_tva = calculate_tva(self.ui.lineEditMontant.text(), self.ui.comboBoxTVA.currentText())
-        if montant_tva is not None:
-            self.ui.lineEditMontantTVA.setText(f"{montant_tva:.2f}")
-        else:
-            self.ui.lineEditMontantTVA.setText("")
 
     def validate_fields(self):
         return validate_fields(
@@ -270,12 +222,3 @@ class GestionRecettes(QDialog):
         except Exception as e:
             handle_exception(e, "Erreur lors de la suppression de la recette")
 
-    def calculate_and_update(self):
-        try:
-            tva_paid = float(self.ui.lineEditMontant.text())
-            tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))
-            ttc = tva_paid / (tva_rate / 100) + tva_paid
-            self.ui.lineEditMontantTVA.setText(f"{tva_paid:.2f}")
-            self.ui.lineEditMontant.setText(f"{ttc:.2f}")
-        except ValueError:
-            QMessageBox.warning(self, "Erreur", "Veuillez entrer un montant valide.")
