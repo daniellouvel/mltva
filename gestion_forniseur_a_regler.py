@@ -65,8 +65,10 @@ class GestionFournisseurARegler(QDialog):
                     elif column_number == 2:  # Colonne fournisseur
                         item = QTableWidgetItem(str(data))
                     elif column_number == 3:  # Colonne ttc
-                        # Formatage de la valeur ttc
-                        formatted_ttc = f"{data:,.2f} €".replace(',', ' ').replace('.', ',')
+                        try:
+                            formatted_ttc = f"{float(data):,.2f} €".replace(',', ' ').replace('.', ',')
+                        except (ValueError, TypeError):
+                            formatted_ttc = str(data)
                         item = QTableWidgetItem(formatted_ttc)
                     else:
                         item = QTableWidgetItem(str(data))
