@@ -43,14 +43,21 @@ def _extract_text(file_path):
         )
     pytesseract.pytesseract.tesseract_cmd = tess
 
+    # Détecter les langues disponibles, préférer fra sinon eng
+    try:
+        langs_disponibles = pytesseract.get_languages()
+        lang = "fra" if "fra" in langs_disponibles else "eng"
+    except Exception:
+        lang = "eng"
+
     ext = os.path.splitext(file_path)[1].lower()
     tmp_img = None
 
     if ext == ".pdf":
         tmp_img = _pdf_to_image(file_path)
-        text = pytesseract.image_to_string(Image.open(tmp_img), lang="fra")
+        text = pytesseract.image_to_string(Image.open(tmp_img), lang=lang)
     else:
-        text = pytesseract.image_to_string(Image.open(file_path), lang="fra")
+        text = pytesseract.image_to_string(Image.open(file_path), lang=lang)
 
     if tmp_img and os.path.exists(tmp_img):
         os.remove(tmp_img)
