@@ -176,26 +176,22 @@ class DatabaseManager:
         query = "DELETE FROM recettes WHERE id=?"
         return self.execute_query(query, (recette_id,))
 
-    def fournisseur_exists(self, fournisseur):
-        """Vérifie si le fournisseur existe déjà dans la table 'contacts'."""
+    def contact_exists(self, nom):
+        """Vérifie si un contact existe déjà dans la table 'contacts'."""
         query = "SELECT COUNT(*) FROM contacts WHERE nom = ?"
-        result = self.fetch_all(query, (fournisseur,))
-        if result:  # Vérifiez si le résultat n'est pas vide
-            return result[0][0] > 0  # Retourne True si le fournisseur existe
-        return False  # Retourne False si aucun résultat
+        result = self.fetch_all(query, (nom,))
+        return bool(result and result[0][0] > 0)
+
+    def fournisseur_exists(self, nom):
+        return self.contact_exists(nom)
+
+    def client_exists(self, nom):
+        return self.contact_exists(nom)
 
     def insert_fournisseur(self, nom):
         """Insère un nouveau fournisseur dans la table 'contacts'."""
         query = "INSERT INTO contacts (nom) VALUES (?)"
         return self.execute_query(query, (nom,))
-
-    def client_exists(self, client):
-        """Vérifie si le client existe déjà dans la table 'contacts'."""
-        query = "SELECT COUNT(*) FROM contacts WHERE nom = ?"
-        result = self.fetch_all(query, (client,))
-        if result:  # Vérifiez si le résultat n'est pas vide
-            return result[0][0] > 0  # Retourne True si le client existe
-        return False  # Retourne False si aucun résultat
 
     def insert_client(self, nom, prenom=None, telephone=None, email=None):
         """Insère un nouveau client dans la table 'contacts'."""

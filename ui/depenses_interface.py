@@ -243,15 +243,15 @@ class GestionDepenses(GestionBase):
         yes_button.clicked.connect(lambda: self.add_duplicate_expenses(duplicates, duplicate_dialog))
         no_button.clicked.connect(duplicate_dialog.reject)
         duplicate_dialog.resize(800, 600)
-        duplicate_dialog.exec_()
+        duplicate_dialog.exec()
 
     def add_duplicate_expenses(self, duplicates, dialog):
         for row_data in duplicates:
             row_data = list(row_data)
-            if len(row_data) < 7:
+            if len(row_data) < 8:
                 QMessageBox.warning(self, "Erreur", "Les données de doublon sont incomplètes.")
                 continue
-            date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire = row_data[:7]
+            date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire = row_data[1:8]
             self.db_manager.insert_depense(date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
         QMessageBox.information(self, "Succès", "Les doublons ont été ajoutés avec succès.")
         dialog.accept()
@@ -338,13 +338,23 @@ class GestionDepenses(GestionBase):
             QMessageBox.warning(self, "Attention", ERROR_MESSAGES["NO_SELECTION"])
             return
         try:
-            success = self.db_manager.delete_depense(self.selected_row_id)
-            if success:
-                QMessageBox.information(self, "Succès", ERROR_MESSAGES["DELETE_SUCCESS"])
-                self.load_depenses()
-                self.clear_fields()
-            else:
-                QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
+            row = self.ui.tableWidget.currentRow()
+            confirmation_message = (
+                f"Êtes-vous sûr de vouloir supprimer cette dépense ?\n\n"
+                f"Date : {self.ui.tableWidget.item(row, 1).text()}\n"
+                f"Fournisseur : {self.ui.tableWidget.item(row, 2).text()}\n"
+                f"Montant : {self.ui.tableWidget.item(row, 3).text()}"
+            )
+            reply = QMessageBox.question(self, "Confirmation de suppression", confirmation_message,
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                success = self.db_manager.delete_depense(self.selected_row_id)
+                if success:
+                    QMessageBox.information(self, "Succès", ERROR_MESSAGES["DELETE_SUCCESS"])
+                    self.load_depenses()
+                    self.clear_fields()
+                else:
+                    QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
         except Exception as e:
             handle_exception(e, "Erreur lors de la suppression de la dépense")
 

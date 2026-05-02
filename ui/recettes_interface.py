@@ -141,6 +141,7 @@ class GestionRecettes(GestionBase):
                 formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire
             )
             if success:
+                QMessageBox.information(self, "Succès", "La recette a été ajoutée avec succès.")
                 self.load_recettes()
                 self.clear_fields()
         except Exception as e:
