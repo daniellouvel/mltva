@@ -213,7 +213,8 @@ class GestionDepenses(GestionBase):
             """
             duplicates_current = self.db_manager.fetch_all(query, (ttc, fournisseur, f"{month_number:02d}", self.annee))
             previous_month = month_number - 1 if month_number > 1 else 12
-            previous_year = self.annee if month_number > 1 else self.annee - 1
+            annee_int = int(self.annee)
+            previous_year = annee_int if month_number > 1 else annee_int - 1
             duplicates_previous = self.db_manager.fetch_all(query, (ttc, fournisseur, f"{previous_month:02d}", previous_year))
             return duplicates_current + duplicates_previous
         except Exception as e:
