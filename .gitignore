@@ -1,0 +1,50 @@
+# Fichiers et dossiers générés par Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnement virtuel
+venv/
+ENV/
+env/
+
+# Base de données SQLite
+*.db
+
+# IDE (Visual Studio Code, PyCharm, etc.)
+.vscode/
+.idea/
+*.code-workspace
+
+# Fichiers temporaires
+*.tmp
+*.log
+*.bak
+
+# Systèmes d'exploitation
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# Compilation / distribution
+build/
+dist/
+*.spec
+
+# Claude Code
+.claude/
+
+# Autres fichiers à ignorer
+*.env
+*.env.local
+*.env.*.local

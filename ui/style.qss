@@ -216,6 +216,7 @@ QTableWidget {
 }
 QTableWidget::item {
     padding: 4px;
+    color: #000000;
 }
 QHeaderView::section {
     background-color: #2C5F8A;
