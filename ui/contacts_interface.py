@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QTableWidgetItem
-from PySide6.QtCore import QEvent
+from PySide6.QtCore import QEvent, Qt
 from ui.ui_contacts_manager import Ui_ContactsManager
+from ui.aide_dialog import AideDialog
 from database import DatabaseManager
 
 
@@ -94,6 +95,12 @@ class ContactsManager(QMainWindow):
                 self.load_contacts()
             else:
                 QMessageBox.warning(self, "Erreur", "Erreur lors de la suppression du contact.")
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F1:
+            AideDialog(self).exec()
+        else:
+            super().keyPressEvent(event)
 
     def clear_inputs(self):
         self.ui.name_input.clear()

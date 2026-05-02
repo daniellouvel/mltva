@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QDialog, QMessageBox, QLineEdit, QComboBox
 from PySide6.QtCore import Qt, QEvent, QDate
 from util import calculate_tva, handle_exception
+from ui.aide_dialog import AideDialog
 
 
 class GestionBase(QDialog):
@@ -18,7 +19,9 @@ class GestionBase(QDialog):
         return super().eventFilter(obj, event)
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+        if event.key() == Qt.Key_F1:
+            AideDialog(self).exec()
+        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
             if isinstance(self.focusWidget(), (QLineEdit, QComboBox)):
                 return
             if self.focusWidget() in (self.ui.quitterButton, self.ui.tableWidget):

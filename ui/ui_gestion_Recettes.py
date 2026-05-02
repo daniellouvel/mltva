@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QGridLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
+from PySide6.QtGui import QFont
 
 
 class Ui_Dialog(object):
@@ -124,6 +125,9 @@ class Ui_Dialog(object):
         btn_layout.addWidget(self.pushButtonEffacer)
         btn_layout.addWidget(self.push_calculettettc)
         btn_layout.addStretch()
+        label_f1 = QLabel("F1 : Aide")
+        label_f1.setStyleSheet("color: #95A5A6; font-style: italic;")
+        btn_layout.addWidget(label_f1)
         main_layout.addLayout(btn_layout)
 
         # --- Tableau principal (s'étire) ---
