@@ -11,7 +11,7 @@ TESSERACT_PATHS = [
     r"C:\Users\Daniel\AppData\Local\Programs\Tesseract-OCR\tesseract.exe",
 ]
 
-TVA_RATES = {"20": "20%", "10": "10%", "5.5": "5,5%", "5,5": "5,5%", "8.5": "8,5%", "0": "0%"}
+TVA_RATES = {"20": "20.00%", "10": "10.00%", "5.5": "5.50%", "5,5": "5.50%", "8.5": "8.50%", "0": "0.00%"}
 
 
 def _find_tesseract():

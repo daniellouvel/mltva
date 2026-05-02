@@ -371,15 +371,6 @@ class GestionDepenses(GestionBase):
         try:
             result = scan_facture(file_path)
 
-            if result["tva_rate"]:
-                self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
-            if result["date"]:
-                self.ui.lineEditDate.setText(result["date"])
-            if result["fournisseur"]:
-                self.ui.comboBoxFournisseur.setCurrentText(result["fournisseur"])
-            if result["montant"]:
-                self.ui.lineEditMontant.setText(result["montant"])
-
             champs_trouves = [k for k, v in result.items() if v and k != "texte_brut"]
             if not champs_trouves:
                 QMessageBox.warning(
@@ -389,27 +380,45 @@ class GestionDepenses(GestionBase):
                 )
                 return
 
-            # Vérifier si la date correspond à la période active
-            avertissement_periode = ""
+            # Résoudre le conflit de période avant de remplir les champs
+            date_a_utiliser = result["date"]
             if result["date"]:
                 try:
                     date_obj = datetime.strptime(result["date"], "%d/%m/%Y")
                     if date_obj.month != self.selected_month or date_obj.year != self.selected_year:
-                        avertissement_periode = (
-                            f"\n\n⚠️ La date de la facture ({result['date']}) "
-                            f"ne correspond pas à la période active "
-                            f"({self.mois} {self.annee}).\n"
-                            "Pensez à changer la période dans la fenêtre principale "
-                            "avant de valider."
+                        date_periode = f"01/{self.selected_month:02d}/{self.selected_year}"
+                        reponse = QMessageBox.question(
+                            self, "Période différente",
+                            f"La date de la facture ({result['date']}) ne correspond pas "
+                            f"à la période active ({self.mois} {self.annee}).\n\n"
+                            f"Voulez-vous enregistrer cette dépense en {self.mois} {self.annee} "
+                            f"(date : {date_periode}) ?\n\n"
+                            f"Cliquez sur Non pour garder la date de la facture "
+                            f"(la dépense ne sera pas visible dans la période active).",
+                            QMessageBox.Yes | QMessageBox.No,
+                            QMessageBox.Yes
                         )
+                        if reponse == QMessageBox.Yes:
+                            date_a_utiliser = date_periode
                 except ValueError:
                     pass
+
+            # Remplir les champs dans l'ordre : TVA d'abord, montant en dernier
+            if result["tva_rate"]:
+                self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
+            if date_a_utiliser:
+                self.ui.lineEditDate.setText(date_a_utiliser)
+            if result["fournisseur"]:
+                self.ui.comboBoxFournisseur.setEditText(result["fournisseur"])
+            if result["montant"]:
+                self.ui.lineEditMontant.setText(result["montant"])
+            # Forcer le recalcul de la TVA avec les valeurs finales
+            self.calculate_tva()
 
             QMessageBox.information(
                 self, "Scan terminé",
                 f"Champs détectés : {', '.join(champs_trouves)}\n\n"
-                f"Vérifiez les valeurs puis cliquez sur Valider pour enregistrer."
-                f"{avertissement_periode}"
+                "Vérifiez les valeurs puis cliquez sur Valider pour enregistrer."
             )
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Tesseract manquant", str(e))
