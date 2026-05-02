@@ -14,6 +14,7 @@ from gestion_forniseur_a_regler import GestionFournisseurARegler
 from utils.backup import backup_database
 from ui.restore_dialog import RestoreDialog
 from ui.synthese_interface import SyntheseDialog
+from ui.aide_dialog import AideDialog
 
 
 class MainWindow(QMainWindow):
@@ -40,6 +41,11 @@ class MainWindow(QMainWindow):
         self.action_restaurer = QAction("Restaurer une sauvegarde...", self)
         self.action_restaurer.triggered.connect(self.open_restore_dialog)
         self.ui.menuConfig.addAction(self.action_restaurer)
+
+        action_aide = QAction("Guide d'utilisation", self)
+        action_aide.setShortcut("F1")
+        action_aide.triggered.connect(self.open_aide)
+        self.ui.menuAide.addAction(action_aide)
 
     def eventFilter(self, obj, event):
         if obj == self.ui.labellogo and event.type() == QEvent.Show and not self._logo_loaded:
@@ -151,3 +157,7 @@ class MainWindow(QMainWindow):
     def open_gestion_fournisseur(self):
         self.gestion_fournisseur_window = GestionFournisseurARegler()
         self.gestion_fournisseur_window.exec()
+
+    def open_aide(self):
+        dialog = AideDialog(self)
+        dialog.exec()
