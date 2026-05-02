@@ -371,28 +371,46 @@ class GestionDepenses(GestionBase):
         try:
             result = scan_facture(file_path)
 
+            if result["tva_rate"]:
+                self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
             if result["date"]:
                 self.ui.lineEditDate.setText(result["date"])
             if result["fournisseur"]:
                 self.ui.comboBoxFournisseur.setCurrentText(result["fournisseur"])
             if result["montant"]:
                 self.ui.lineEditMontant.setText(result["montant"])
-            if result["tva_rate"]:
-                self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
 
             champs_trouves = [k for k, v in result.items() if v and k != "texte_brut"]
-            if champs_trouves:
-                QMessageBox.information(
-                    self, "Scan terminé",
-                    f"Champs détectés : {', '.join(champs_trouves)}\n\n"
-                    "Vérifiez les valeurs avant de valider."
-                )
-            else:
+            if not champs_trouves:
                 QMessageBox.warning(
                     self, "Scan incomplet",
                     "Aucun champ n'a pu être extrait automatiquement.\n"
                     "Vérifiez la qualité de l'image et remplissez manuellement."
                 )
+                return
+
+            # Vérifier si la date correspond à la période active
+            avertissement_periode = ""
+            if result["date"]:
+                try:
+                    date_obj = datetime.strptime(result["date"], "%d/%m/%Y")
+                    if date_obj.month != self.selected_month or date_obj.year != self.selected_year:
+                        avertissement_periode = (
+                            f"\n\n⚠️ La date de la facture ({result['date']}) "
+                            f"ne correspond pas à la période active "
+                            f"({self.mois} {self.annee}).\n"
+                            "Pensez à changer la période dans la fenêtre principale "
+                            "avant de valider."
+                        )
+                except ValueError:
+                    pass
+
+            QMessageBox.information(
+                self, "Scan terminé",
+                f"Champs détectés : {', '.join(champs_trouves)}\n\n"
+                f"Vérifiez les valeurs puis cliquez sur Valider pour enregistrer."
+                f"{avertissement_periode}"
+            )
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Tesseract manquant", str(e))
         except Exception as e:
