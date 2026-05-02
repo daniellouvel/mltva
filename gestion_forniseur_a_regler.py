@@ -57,9 +57,10 @@ class GestionFournisseurARegler(QDialog):
                 self.ui.tableWidget_a_regler.insertRow(row_number)
                 for column_number, data in enumerate(row_data):
                     if column_number == 1:  # Colonne date
-                        # Formatage de la date au format dd/mm/yyyy
-                        date_obj = datetime.strptime(data, "%Y-%m-%d")  # Assurez-vous que le format d'origine est correct
-                        formatted_date = date_obj.strftime("%d/%m/%Y")
+                        try:
+                            formatted_date = datetime.strptime(str(data), "%Y-%m-%d").strftime("%d/%m/%Y")
+                        except (ValueError, TypeError):
+                            formatted_date = str(data)
                         item = QTableWidgetItem(formatted_date)
                     elif column_number == 2:  # Colonne fournisseur
                         item = QTableWidgetItem(str(data))
@@ -129,9 +130,10 @@ class GestionFournisseurARegler(QDialog):
         total_ttc = 0.0  # Initialiser le total TTC
 
         for row in rows:
-            # Formatage de la date au format dd/mm/yyyy
-            date_obj = datetime.strptime(row[1], "%Y-%m-%d")
-            formatted_date = date_obj.strftime("%d/%m/%Y")
+            try:
+                formatted_date = datetime.strptime(str(row[1]), "%Y-%m-%d").strftime("%d/%m/%Y")
+            except (ValueError, TypeError):
+                formatted_date = str(row[1])
 
             data.append([
                 str(row[0]),  # ID
