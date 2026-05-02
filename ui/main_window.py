@@ -11,6 +11,7 @@ from constants import DB_CONFIG, ERROR_MESSAGES, UI_CONFIG
 from util import convert_month_to_number
 from pdf_generator import PDFGenerator
 from gestion_forniseur_a_regler import GestionFournisseurARegler
+from utils.backup import backup_database
 
 
 class MainWindow(QMainWindow):
@@ -82,6 +83,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.save_periode()
+        backup_database()
         event.accept()
 
     def on_export_pdf_clicked(self):
