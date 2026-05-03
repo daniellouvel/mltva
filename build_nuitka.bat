@@ -31,6 +31,8 @@ venv\Scripts\python.exe -m nuitka ^
     --windows-console-mode=disable ^
     --output-filename=mltva.exe ^
     --output-dir=build ^
+    --include-data-files=company.json=company.json ^
+    --include-data-files=ui\style.qss=ui\style.qss ^
     --include-data-files=data\Logo.jpg=data\Logo.jpg ^
     --include-data-files=data\donne.png=data\donne.png ^
     --include-data-files=data\recoi.png=data\recoi.png ^

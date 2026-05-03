@@ -599,7 +599,7 @@ dist/mltva/          ← dossier à distribuer (~116 Mo)
   ...
 ```
 
-> **Note :** le fichier `ui/style.qss` n'est pas copié dans `dist/` — le style est intégré dans l'exécutable par Nuitka. Pour modifier le thème après compilation, il faut recompiler.
+> **Note :** `ui/style.qss` et `company.json` sont copiés dans `dist/mltva/` via `--include-data-files`. Le QSS est lu depuis le disque au démarrage — éditer `dist/mltva/ui/style.qss` ou `dist/mltva/company.json` ne nécessite pas de recompiler.
 
 ---
 
