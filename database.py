@@ -52,11 +52,19 @@ class DatabaseManager:
             conn.execute("PRAGMA journal_mode = WAL")
             conn.execute("PRAGMA cache_size = -2000")
             conn.execute("PRAGMA foreign_keys = ON")
+            self._migrate(conn)
             logger.info(ERROR_MESSAGES["DB_CONNECTION"])
             return conn
         except Error as e:
             logger.error(ERROR_MESSAGES["DB_CONNECTION_ERROR"].format(e))
             raise
+
+    def _migrate(self, conn):
+        """Appliquer les migrations de schéma manquantes (idempotent)."""
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(recettes)")}
+        if "validation" not in cols:
+            conn.execute("ALTER TABLE recettes ADD COLUMN validation TEXT DEFAULT 'Non'")
+            conn.commit()
 
     # Compat : alias historique (utilise dans certaines vues)
     def create_connection(self):
@@ -210,20 +218,20 @@ class DatabaseManager:
 
     # ── Recettes ──────────────────────────────────────────────────────────────
 
-    def insert_recette(self, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
+    def insert_recette(self, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire):
         query = """
-        INSERT INTO recettes (date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO recettes (date, client, paiement, numero_facture, montant, tva, montant_tva, validation, commentaire)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire))
+        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire))
 
-    def update_recette(self, recette_id, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
+    def update_recette(self, recette_id, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire):
         query = """
         UPDATE recettes
-        SET date=?, client=?, paiement=?, numero_facture=?, montant=?, tva=?, montant_tva=?, commentaire=?
+        SET date=?, client=?, paiement=?, numero_facture=?, montant=?, tva=?, montant_tva=?, validation=?, commentaire=?
         WHERE id=?
         """
-        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire, recette_id))
+        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire, recette_id))
 
     def delete_recette(self, recette_id):
         return self.execute_query("DELETE FROM recettes WHERE id=?", (recette_id,))

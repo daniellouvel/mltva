@@ -4,7 +4,7 @@
 
 from PySide6.QtCore import QMetaObject
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCalendarWidget, QComboBox,
+    QAbstractItemView, QCalendarWidget, QCheckBox, QComboBox,
     QGridLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
@@ -95,6 +95,10 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.labelCommentaire, 7, 0)
         self.gridLayout.addWidget(self.lineEditCommentaire, 7, 1)
 
+        self.checkBoxValidation = QCheckBox("Validation")
+        self.checkBoxValidation.setObjectName("checkBoxValidation")
+        self.gridLayout.addWidget(self.checkBoxValidation, 8, 0, 1, 2)
+
         # Calendrier (caché par défaut)
         self.calendarWidget = QCalendarWidget()
         self.calendarWidget.setObjectName("calendarWidget")
@@ -133,8 +137,8 @@ class Ui_Dialog(object):
         # --- Tableau principal (s'étire) ---
         self.tableWidget = QTableWidget()
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(9)
-        headers = ["Repère", "Date", "Client", "Paiement", "N°Facture", "Montant", "Taux TVA", "Montant TVA", "Commentaire"]
+        self.tableWidget.setColumnCount(10)
+        headers = ["Repère", "Date", "Client", "Paiement", "N°Facture", "Montant", "Taux TVA", "Montant TVA", "Validation", "Commentaire"]
         for i, h in enumerate(headers):
             self.tableWidget.setHorizontalHeaderItem(i, QTableWidgetItem(h))
         self.tableWidget.setAlternatingRowColors(True)
