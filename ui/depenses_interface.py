@@ -16,6 +16,9 @@ from datetime import datetime
 from constants import ERROR_MESSAGES, UI_CONFIG
 from calculette import CalculetteDialog
 from scan_facture import scan_facture
+from scan_email import load_email_config, fetch_invoice_pdfs
+from ui.scan_batch_dialog import ScanBatchDialog
+from ui.email_config_dialog import EmailConfigDialog
 
 TABLE_COLUMNS = {
     "REPERE": 0,
@@ -72,6 +75,7 @@ class GestionDepenses(GestionBase):
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
         self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)
         self.ui.push_scan_facture.clicked.connect(self.on_scan_facture)
+        self.ui.push_import_email.clicked.connect(self.on_import_email)
         self.ui.pushButtonValider.setDefault(True)
         self.ui.quitterButton.setAutoDefault(False)
         self.ui.quitterButton.setDefault(False)
@@ -362,12 +366,21 @@ class GestionDepenses(GestionBase):
             handle_exception(e, "Erreur lors de la suppression de la dépense")
 
     def on_scan_facture(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Sélectionner une facture",
+        """Scan d'une ou plusieurs factures (sélection multiple)."""
+        file_paths, _ = QFileDialog.getOpenFileNames(
+            self, "Sélectionner une ou plusieurs factures",
             "", "Factures (*.pdf *.png *.jpg *.jpeg *.tif *.tiff);;Tous (*)"
         )
-        if not file_path:
+        if not file_paths:
             return
+
+        if len(file_paths) == 1:
+            self._scan_single(file_paths[0])
+        else:
+            self._scan_batch(file_paths)
+
+    def _scan_single(self, file_path):
+        """Scan d'une facture unique : pré-remplit le formulaire principal."""
         try:
             result = scan_facture(file_path)
 
@@ -380,7 +393,6 @@ class GestionDepenses(GestionBase):
                 )
                 return
 
-            # Résoudre le conflit de période avant de remplir les champs
             date_a_utiliser = result["date"]
             if result["date"]:
                 try:
@@ -392,9 +404,7 @@ class GestionDepenses(GestionBase):
                             f"La date de la facture ({result['date']}) ne correspond pas "
                             f"à la période active ({self.mois} {self.annee}).\n\n"
                             f"Voulez-vous enregistrer cette dépense en {self.mois} {self.annee} "
-                            f"(date : {date_periode}) ?\n\n"
-                            f"Cliquez sur Non pour garder la date de la facture "
-                            f"(la dépense ne sera pas visible dans la période active).",
+                            f"(date : {date_periode}) ?",
                             QMessageBox.Yes | QMessageBox.No,
                             QMessageBox.Yes
                         )
@@ -403,7 +413,6 @@ class GestionDepenses(GestionBase):
                 except ValueError:
                     pass
 
-            # Remplir les champs dans l'ordre : TVA d'abord, montant en dernier
             if result["tva_rate"]:
                 self.ui.comboBoxTVA.setCurrentText(result["tva_rate"])
             if date_a_utiliser:
@@ -412,7 +421,6 @@ class GestionDepenses(GestionBase):
                 self.ui.comboBoxFournisseur.setEditText(result["fournisseur"])
             if result["montant"]:
                 self.ui.lineEditMontant.setText(result["montant"])
-            # Forcer le recalcul de la TVA avec les valeurs finales
             self.calculate_tva()
 
             QMessageBox.information(
@@ -424,3 +432,65 @@ class GestionDepenses(GestionBase):
             QMessageBox.critical(self, "Tesseract manquant", str(e))
         except Exception as e:
             handle_exception(e, "Erreur lors du scan de la facture")
+
+    def _scan_batch(self, file_paths):
+        """Scan de plusieurs factures via le dialogue de traitement par lot."""
+        dlg = ScanBatchDialog(
+            file_paths, self.db_manager,
+            self.mois, self.annee,
+            self.selected_month, self.selected_year,
+            parent=self
+        )
+        dlg.exec()
+        self.load_depenses()
+
+    def on_import_email(self):
+        """Importe les factures PDF reçues par email puis lance le traitement par lot."""
+        cfg = load_email_config()
+
+        if not cfg.get("email") or not cfg.get("password"):
+            rep = QMessageBox.question(
+                self, "Configuration manquante",
+                "L'accès email n'est pas encore configuré.\n\n"
+                "Voulez-vous configurer la connexion maintenant ?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if rep != QMessageBox.Yes:
+                return
+            dlg = EmailConfigDialog(self)
+            if dlg.exec() != EmailConfigDialog.Accepted:
+                return
+            cfg = load_email_config()
+
+        try:
+            QMessageBox.information(
+                self, "Connexion en cours",
+                f"Récupération des emails de {cfg['email']}\n"
+                f"(derniers {cfg['jours']} jours) …\n\nCliquez OK pour continuer."
+            )
+            pdf_paths, nb_emails = fetch_invoice_pdfs(
+                cfg["server"], cfg["port"],
+                cfg["email"], cfg["password"],
+                cfg.get("dossier", "INBOX"),
+                cfg.get("jours", 30)
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur email", f"Impossible de récupérer les emails :\n\n{e}")
+            return
+
+        if not pdf_paths:
+            QMessageBox.information(
+                self, "Aucune pièce jointe",
+                f"{nb_emails} email(s) analysé(s) — aucun PDF trouvé."
+            )
+            return
+
+        rep = QMessageBox.question(
+            self, "Factures trouvées",
+            f"{nb_emails} email(s) analysé(s).\n"
+            f"{len(pdf_paths)} PDF trouvé(s).\n\n"
+            "Lancer le traitement par lot ?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if rep == QMessageBox.Yes:
+            self._scan_batch(pdf_paths)

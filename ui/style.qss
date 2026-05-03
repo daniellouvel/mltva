@@ -181,6 +181,17 @@ QPushButton[objectName="push_scan_facture"]:pressed {
     background-color: #0E6655;
 }
 
+/* ── Import email ── */
+QPushButton[objectName="push_import_email"] {
+    background-color: #1565C0;
+}
+QPushButton[objectName="push_import_email"]:hover {
+    background-color: #1976D2;
+}
+QPushButton[objectName="push_import_email"]:pressed {
+    background-color: #0D47A1;
+}
+
 /* ── Boutons fenêtre principale ── */
 QPushButton[objectName="depensesButton"] {
     background-color: #E74C3C;
