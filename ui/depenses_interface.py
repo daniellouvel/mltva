@@ -71,9 +71,14 @@ class GestionDepenses(GestionBase):
         self.ui.lineEditDate.clear()
         configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
         self.ui.comboBoxTVA.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])
+        self.ui.comboBoxTVA2.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])
+        self.ui.lineEditMontantTVA2.setReadOnly(True)
         self._connect_buttons()
         self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
         self.ui.comboBoxTVA.currentTextChanged.connect(self.calculate_tva)
+        self.ui.checkBox2emeLigne.toggled.connect(self._toggle_second_line)
+        self.ui.lineEditMontant2.textChanged.connect(self._calculate_tva2)
+        self.ui.comboBoxTVA2.currentTextChanged.connect(self._calculate_tva2)
         self.ui.tableWidget.cellClicked.connect(self.load_selected_row)
         self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)
         self.ui.push_scan_facture.clicked.connect(self.on_scan_facture)
@@ -286,6 +291,16 @@ class GestionDepenses(GestionBase):
                     configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
             success = self.db_manager.insert_depense(*depense_data)
             if success:
+                if self.ui.checkBox2emeLigne.isChecked():
+                    ttc2_text = self.ui.lineEditMontant2.text()
+                    if ttc2_text and ttc2_text.replace('.', '', 1).isdigit():
+                        tva2 = float(self.ui.comboBoxTVA2.currentText().strip('%'))
+                        tva2_text = self.ui.lineEditMontantTVA2.text()
+                        montant_tva2 = float(tva2_text) if tva2_text else 0.0
+                        self.db_manager.insert_depense(
+                            formatted_date, fournisseur, float(ttc2_text),
+                            tva2, montant_tva2, validation, commentaire
+                        )
                 QMessageBox.information(self, "Succès", ERROR_MESSAGES["ADD_SUCCESS"])
                 self.load_depenses()
                 self.clear_fields()
@@ -293,6 +308,22 @@ class GestionDepenses(GestionBase):
                 QMessageBox.critical(self, "Erreur", ERROR_MESSAGES["DATABASE_ERROR"])
         except Exception as e:
             handle_exception(e, "Erreur lors de l'ajout de la dépense")
+
+    def _toggle_second_line(self, checked):
+        for w in [self.ui.labelTTC2, self.ui.lineEditMontant2,
+                  self.ui.labelTVA2, self.ui.comboBoxTVA2,
+                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2]:
+            w.setVisible(checked)
+        if not checked:
+            self.ui.lineEditMontant2.clear()
+            self.ui.lineEditMontantTVA2.clear()
+
+    def _calculate_tva2(self):
+        montant_tva = calculate_tva(self.ui.lineEditMontant2.text(), self.ui.comboBoxTVA2.currentText())
+        if montant_tva is not None:
+            self.ui.lineEditMontantTVA2.setText(f"{montant_tva:.2f}")
+        else:
+            self.ui.lineEditMontantTVA2.setText("")
 
     def clear_fields(self):
         try:
@@ -303,6 +334,7 @@ class GestionDepenses(GestionBase):
             self.ui.lineEditMontantTVA.clear()
             self.ui.lineEditCommentaire.clear()
             self.ui.checkBoxValidation.setChecked(False)
+            self.ui.checkBox2emeLigne.setChecked(False)
             self.selected_row_id = None
             self.ui.pushButtonValider.setEnabled(True)
         except Exception as e:

@@ -54,15 +54,19 @@ class GestionRecettes(GestionBase):
         self.setModal(True)
         self.installEventFilter(self)
         self.ui.lineEditMontantTVA.setReadOnly(True)
+        self.ui.lineEditMontantTVA2.setReadOnly(True)
+        self.ui.checkBox2emeLigne.toggled.connect(self._toggle_second_line)
+        self.ui.lineEditMontant2.textChanged.connect(self._calculate_tva2)
+        self.ui.comboBoxTVA2.currentTextChanged.connect(self._calculate_tva2)
         self.ui.lineEditDate.setFocus()
 
     def configure_table(self):
-        self.ui.tableWidget.setColumnCount(10)
+        self.ui.tableWidget.setColumnCount(9)
         self.ui.tableWidget.setHorizontalHeaderLabels(
-            ["Repère", "Date", "Client", "Paiement", "N° Facture", "Montant", "Taux TVA", "Montant TVA", "Validation", "Commentaire"]
+            ["Repère", "Date", "Client", "Paiement", "N° Facture", "Montant", "Taux TVA", "Montant TVA", "Commentaire"]
         )
         self.ui.tableWidget.verticalHeader().setVisible(False)
-        widths = [50, 100, 185, 80, 80, 100, 80, 100, 80, 400]
+        widths = [50, 100, 185, 80, 80, 100, 80, 100, 400]
         for col, width in enumerate(widths):
             self.ui.tableWidget.setColumnWidth(col, width)
 
@@ -76,7 +80,7 @@ class GestionRecettes(GestionBase):
     def load_recettes(self):
         mois_numerique = convert_month_to_number(self.mois)
         query = """
-        SELECT id, date, client, paiement, numero_facture, montant, tva, montant_tva, validation, commentaire
+        SELECT id, date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire
         FROM recettes
         WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
         """
@@ -115,6 +119,23 @@ class GestionRecettes(GestionBase):
     def configure_tva_combobox(self):
         self.ui.comboBoxTVA.clear()
         self.ui.comboBoxTVA.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])
+        self.ui.comboBoxTVA2.addItems(UI_CONFIG["DEFAULT_TVA_RATES"])
+
+    def _toggle_second_line(self, checked):
+        for w in [self.ui.labelMontant2, self.ui.lineEditMontant2,
+                  self.ui.labelTVA2, self.ui.comboBoxTVA2,
+                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2]:
+            w.setVisible(checked)
+        if not checked:
+            self.ui.lineEditMontant2.clear()
+            self.ui.lineEditMontantTVA2.clear()
+
+    def _calculate_tva2(self):
+        montant_tva = calculate_tva(self.ui.lineEditMontant2.text(), self.ui.comboBoxTVA2.currentText())
+        if montant_tva is not None:
+            self.ui.lineEditMontantTVA2.setText(f"{montant_tva:.2f}")
+        else:
+            self.ui.lineEditMontantTVA2.setText("")
 
     def add_new_row(self):
         if not self.validate_fields():
@@ -129,7 +150,6 @@ class GestionRecettes(GestionBase):
             montant = float(self.ui.lineEditMontant.text())
             tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))
             montant_tva = float(self.ui.lineEditMontantTVA.text())
-            validation = "Oui" if self.ui.checkBoxValidation.isChecked() else "Non"
             commentaire = self.ui.lineEditCommentaire.text()
             if not self.db_manager.client_exists(client):
                 response = QMessageBox.question(self, "Client non trouvé",
@@ -139,9 +159,19 @@ class GestionRecettes(GestionBase):
                     self.db_manager.insert_client(client)
                     configure_fournisseur_combobox(self.ui.comboBoxFournisseur, self.db_manager)
             success = self.db_manager.insert_recette(
-                formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire
+                formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire
             )
             if success:
+                if self.ui.checkBox2emeLigne.isChecked():
+                    montant2_text = self.ui.lineEditMontant2.text()
+                    if montant2_text and montant2_text.replace('.', '', 1).isdigit():
+                        tva2 = float(self.ui.comboBoxTVA2.currentText().strip('%'))
+                        tva2_text = self.ui.lineEditMontantTVA2.text()
+                        montant_tva2 = float(tva2_text) if tva2_text else 0.0
+                        self.db_manager.insert_recette(
+                            formatted_date, client, paiement, numero_facture,
+                            float(montant2_text), tva2, montant_tva2, commentaire
+                        )
                 QMessageBox.information(self, "Succès", "La recette a été ajoutée avec succès.")
                 self.load_recettes()
                 self.clear_fields()
@@ -156,7 +186,7 @@ class GestionRecettes(GestionBase):
         self.ui.lineEditMontant.clear()
         self.ui.comboBoxTVA.setCurrentIndex(0)
         self.ui.lineEditMontantTVA.clear()
-        self.ui.checkBoxValidation.setChecked(False)
+        self.ui.checkBox2emeLigne.setChecked(False)
         self.ui.lineEditCommentaire.clear()
         self.selected_row_id = None
         self.ui.pushButtonValider.setEnabled(True)
@@ -175,8 +205,7 @@ class GestionRecettes(GestionBase):
             self.ui.lineEditMontant.setText(self.ui.tableWidget.item(row, 5).text())
             self.ui.comboBoxTVA.setCurrentText(f"{self.ui.tableWidget.item(row, 6).text()}%")
             self.ui.lineEditMontantTVA.setText(self.ui.tableWidget.item(row, 7).text())
-            self.ui.checkBoxValidation.setChecked(self.ui.tableWidget.item(row, 8).text() == "Oui")
-            self.ui.lineEditCommentaire.setText(self.ui.tableWidget.item(row, 9).text())
+            self.ui.lineEditCommentaire.setText(self.ui.tableWidget.item(row, 8).text())
             self.ui.pushButtonValider.setEnabled(False)
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")
@@ -194,10 +223,9 @@ class GestionRecettes(GestionBase):
             montant = float(self.ui.lineEditMontant.text())
             tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))
             montant_tva = float(self.ui.lineEditMontantTVA.text())
-            validation = "Oui" if self.ui.checkBoxValidation.isChecked() else "Non"
             commentaire = self.ui.lineEditCommentaire.text()
             success = self.db_manager.update_recette(
-                self.selected_row_id, formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire
+                self.selected_row_id, formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire
             )
             if success:
                 self.load_recettes()

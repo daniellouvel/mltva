@@ -88,6 +88,32 @@ class Ui_Dialog(object):
         self.checkBoxValidation.setObjectName("checkBoxValidation")
         self.gridLayout.addWidget(self.checkBoxValidation, 6, 1)
 
+        self.checkBox2emeLigne = QCheckBox("2ème ligne (TVA différente)")
+        self.checkBox2emeLigne.setObjectName("checkBox2emeLigne")
+        self.gridLayout.addWidget(self.checkBox2emeLigne, 7, 0, 1, 2)
+
+        self.labelTTC2 = QLabel("TTC (2ème) :")
+        self.lineEditMontant2 = QLineEdit()
+        self.lineEditMontant2.setObjectName("lineEditMontant2")
+        self.gridLayout.addWidget(self.labelTTC2, 8, 0)
+        self.gridLayout.addWidget(self.lineEditMontant2, 8, 1)
+
+        self.labelTVA2 = QLabel("TVA (2ème) :")
+        self.comboBoxTVA2 = QComboBox()
+        self.comboBoxTVA2.setObjectName("comboBoxTVA2")
+        self.gridLayout.addWidget(self.labelTVA2, 9, 0)
+        self.gridLayout.addWidget(self.comboBoxTVA2, 9, 1)
+
+        self.labelMontantTVA2 = QLabel("Montant TVA (2ème) :")
+        self.lineEditMontantTVA2 = QLineEdit()
+        self.lineEditMontantTVA2.setObjectName("lineEditMontantTVA2")
+        self.gridLayout.addWidget(self.labelMontantTVA2, 10, 0)
+        self.gridLayout.addWidget(self.lineEditMontantTVA2, 10, 1)
+
+        for w in [self.labelTTC2, self.lineEditMontant2, self.labelTVA2,
+                  self.comboBoxTVA2, self.labelMontantTVA2, self.lineEditMontantTVA2]:
+            w.setVisible(False)
+
         # Calendrier (caché par défaut)
         self.calendarWidget = QCalendarWidget()
         self.calendarWidget.setObjectName("calendarWidget")

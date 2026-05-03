@@ -218,20 +218,20 @@ class DatabaseManager:
 
     # ── Recettes ──────────────────────────────────────────────────────────────
 
-    def insert_recette(self, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire):
+    def insert_recette(self, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
         query = """
-        INSERT INTO recettes (date, client, paiement, numero_facture, montant, tva, montant_tva, validation, commentaire)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO recettes (date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
-        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire))
+        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire))
 
-    def update_recette(self, recette_id, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire):
+    def update_recette(self, recette_id, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
         query = """
         UPDATE recettes
-        SET date=?, client=?, paiement=?, numero_facture=?, montant=?, tva=?, montant_tva=?, validation=?, commentaire=?
+        SET date=?, client=?, paiement=?, numero_facture=?, montant=?, tva=?, montant_tva=?, commentaire=?
         WHERE id=?
         """
-        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, validation, commentaire, recette_id))
+        return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire, recette_id))
 
     def delete_recette(self, recette_id):
         return self.execute_query("DELETE FROM recettes WHERE id=?", (recette_id,))
