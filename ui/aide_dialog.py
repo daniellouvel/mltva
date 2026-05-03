@@ -26,6 +26,19 @@ Toutes les dépenses et recettes affichées correspondent à cette période.</p>
   <li><b>À régler</b> — liste des fournisseurs à régler</li>
   <li><b>Quitter</b> — ferme et sauvegarde automatiquement</li>
 </ul>
+
+<h3>Menu Config</h3>
+<ul>
+  <li><b>Synthèse...</b> — synthèse comptable mensuelle et annuelle</li>
+  <li><b>Restaurer une sauvegarde...</b> — restauration de la base de données</li>
+  <li><b>Configuration email...</b> — paramètres IMAP pour l'import de factures</li>
+</ul>
+
+<h3>Menu Aide</h3>
+<ul>
+  <li><b>Guide d'utilisation</b> (F1) — cette fenêtre d'aide</li>
+  <li><b>À propos</b> — version et informations de l'application</li>
+</ul>
 """,
 
     "Saisir une dépense": """
@@ -114,6 +127,44 @@ une fenêtre de confirmation s'affiche pour éviter les doublons.
   <tr><td>20,00 €</td><td>20%</td><td>100,00 €</td><td>120,00 €</td></tr>
   <tr><td>5,50 €</td><td>5,5%</td><td>100,00 €</td><td>105,50 €</td></tr>
 </table>
+""",
+
+    "Import email — Configuration": """
+<h2>Import de factures depuis la messagerie</h2>
+<p>L'application peut se connecter à votre boîte email (IMAP) pour récupérer automatiquement
+les factures reçues en pièce jointe (PDF).</p>
+
+<h3>Configurer la connexion</h3>
+<p>Aller dans <b>Config → Configuration email...</b> (accessible à tout moment, même en cas d'erreur).</p>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+  <tr style="background:#2C5F8A; color:white;"><th>Champ</th><th>Description</th></tr>
+  <tr><td><b>Serveur IMAP</b></td><td>Ex : imap.gmail.com, imap.orange.fr</td></tr>
+  <tr><td><b>Port SSL</b></td><td>993 (standard)</td></tr>
+  <tr><td><b>Adresse email</b></td><td>Votre adresse email</td></tr>
+  <tr><td><b>Mot de passe</b></td><td>Mot de passe d'application (voir ci-dessous)</td></tr>
+  <tr><td><b>Dossier</b></td><td>INBOX par défaut</td></tr>
+  <tr><td><b>N derniers jours</b></td><td>Plage de recherche (1 à 365)</td></tr>
+</table>
+
+<h3>Gmail — mot de passe d'application</h3>
+<ol>
+  <li>Compte Google → <b>Sécurité</b> → Validation en 2 étapes</li>
+  <li>Descendre jusqu'à <b>Mots de passe des applications</b></li>
+  <li>Créer un mot de passe pour «Autre» → copier le code généré</li>
+  <li>Coller ce code dans le champ Mot de passe de l'application</li>
+</ol>
+
+<p style="background:#D5F4E6; padding:8px; border-radius:4px;">
+✓ Le mot de passe est stocké dans le Windows Credential Manager — jamais en clair sur le disque.
+</p>
+
+<h3>Lancer un import</h3>
+<ol>
+  <li>Ouvrir la fenêtre <b>Dépenses</b></li>
+  <li>Cliquer sur <b>Import email</b></li>
+  <li>Choisir le mode de traitement (tableau ou séquentiel)</li>
+</ol>
 """,
 
     "Scan factures — mode tableau": """

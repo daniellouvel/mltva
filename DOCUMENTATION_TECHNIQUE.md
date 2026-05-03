@@ -97,10 +97,18 @@ data/
 Source unique de vérité pour la version de l'application :
 
 ```python
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.1.0"
 ```
 
 Importé dans `constants.py`, `main.py` et `ui/about_dialog.py`. Pour bumper la version avant une release, **modifier uniquement ce fichier**.
+
+### Historique des versions
+
+| Version | Changements principaux |
+|---------|----------------------|
+| 2.1.0 | Extraction texte direct PDF (PyMuPDF), regex montants robustes, config email depuis menu Config |
+| 2.0.0 | Versioning, configuration multi-entreprise (`company.json`), dialogue À propos, chemins absolus |
+| 1.x | Audit cleanup, scan batch tableau + séquentiel, threading async OCR/IMAP |
 
 ### `company.json` — Configuration entreprise
 
@@ -346,6 +354,59 @@ else:
 - `success: bool` — True si l'exécution a réussi
 - `value: Any` — Résultat retourné par `target()`
 - `error: BaseException` — Exception levée (si success=False)
+
+### `scan_email.py` — Import IMAP
+
+Récupère les PDF en pièce jointe depuis une boîte email via IMAP SSL.
+
+```python
+from scan_email import load_email_config, save_email_config, test_connection, fetch_invoice_pdfs
+
+# Charger / sauvegarder la config (sans le mot de passe dans le JSON)
+cfg = load_email_config()   # → dict : server, port, email, dossier, jours, password
+save_email_config(cfg)      # → sauvegarde JSON + password dans Windows Credential Manager
+
+# Tester la connexion
+ok, msg = test_connection(server, port, email_addr, password)
+
+# Récupérer les PDFs
+pdf_paths, nb_emails = fetch_invoice_pdfs(
+    server, port, email_addr, password,
+    dossier="INBOX", jours=30
+)
+```
+
+**Sécurité :**
+- Le mot de passe n'est **jamais** écrit dans `email_config.json`
+- Stocké dans le **Windows Credential Manager** via `keyring` (service : `mltva-imap`)
+- Si `keyring` n'est pas installé, le mot de passe n'est pas conservé entre les sessions
+
+**Chemin config :** `data/email_config.json` — résolu en absolu depuis `__file__`
+
+**Configuration accessible depuis :** menu **Config → Configuration email...**
+
+### `scan_facture.py` — Extraction facture
+
+Analyse un PDF ou une image et retourne les champs clés.
+
+```python
+result = scan_facture("facture.pdf")
+# → {"date": "01/05/2026", "fournisseur": "EDF", "montant": "1234.56",
+#    "tva_rate": "20.00%", "montant_tva": "205.76", "texte_brut": "..."}
+```
+
+**Stratégie d'extraction (v2.1) :**
+
+| Méthode | Cas d'usage | Fiabilité |
+|---------|-------------|-----------|
+| PyMuPDF direct | PDF numérique (généré par logiciel) | Excellente |
+| OCR Tesseract | PDF scanné ou image | Bonne |
+
+L'extraction directe est tentée en premier — si le texte extrait est > 50 caractères, l'OCR est ignoré. Cela couvre la grande majorité des factures reçues par email.
+
+**Formats monétaires gérés :** `1 234,56` · `1.234,56` · `1234,56` · `1234.56`
+
+**Mots-clés reconnus pour le TTC :** `TTC`, `Total TTC`, `Montant TTC`, `Net à payer`, `Total à payer`
 
 ### `ui/scan_batch_dialog.py` et `ui/scan_batch_table_dialog.py` — Scan batch
 

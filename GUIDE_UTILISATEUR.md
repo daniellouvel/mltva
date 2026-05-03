@@ -5,14 +5,15 @@
 1. [Lancement de l'application](#1-lancement)
 2. [Fenêtre principale](#2-fenêtre-principale)
 3. [Gestion des Dépenses](#3-gestion-des-dépenses)
-4. [Scan factures par lot](#4-scan-factures-par-lot)
-5. [Gestion des Recettes](#5-gestion-des-recettes)
-6. [Calculette TVA](#6-calculette-tva)
-7. [Contacts et Fournisseurs](#7-contacts-et-fournisseurs)
-8. [Synthèse comptable](#8-synthèse-comptable)
-9. [Export PDF](#9-export-pdf)
-10. [Sauvegardes et Restauration](#10-sauvegardes-et-restauration)
-11. [Déploiement multi-entreprise](#11-déploiement-multi-entreprise)
+4. [Import de factures depuis la messagerie](#4-import-de-factures-depuis-la-messagerie)
+5. [Scan factures par lot](#5-scan-factures-par-lot)
+6. [Gestion des Recettes](#6-gestion-des-recettes)
+7. [Calculette TVA](#7-calculette-tva)
+8. [Contacts et Fournisseurs](#8-contacts-et-fournisseurs)
+9. [Synthèse comptable](#9-synthèse-comptable)
+10. [Export PDF](#10-export-pdf)
+11. [Sauvegardes et Restauration](#11-sauvegardes-et-restauration)
+12. [Déploiement multi-entreprise](#12-déploiement-multi-entreprise)
 
 ---
 
@@ -40,6 +41,13 @@ La fenêtre principale comporte :
   - `Export PDF` — génère le document fiscal de la période
   - `À régler` — liste des fournisseurs à régler
   - `Quitter` — ferme l'application (déclenche la sauvegarde automatique)
+- **Menu Config** :
+  - `Synthèse...` — synthèse comptable mensuelle et annuelle
+  - `Restaurer une sauvegarde...` — restauration de la base de données
+  - `Configuration email...` — paramètres IMAP pour l'import de factures
+- **Menu Aide** :
+  - `Guide d'utilisation` (F1) — cette aide
+  - `À propos` — version et informations de l'application
 
 > **Important :** sélectionner la bonne période avant d'ouvrir Dépenses ou Recettes. Les données affichées correspondent toujours au mois et à l'année sélectionnés.
 
@@ -82,7 +90,50 @@ Si une dépense identique (même fournisseur, même montant, même mois) existe 
 
 ---
 
-## 4. Scan factures par lot
+## 4. Import de factures depuis la messagerie
+
+L'application peut se connecter à votre boîte email (IMAP) pour récupérer automatiquement les factures reçues en pièce jointe (PDF).
+
+### Configuration email
+
+Avant le premier import, configurez la connexion IMAP via **Config → Configuration email...**
+
+| Champ | Description |
+|-------|-------------|
+| Serveur IMAP | Ex: `imap.gmail.com`, `imap.orange.fr` |
+| Port SSL | `993` (standard) |
+| Adresse email | Votre adresse email |
+| Mot de passe | Mot de passe de l'application (voir ci-dessous) |
+| Dossier | `INBOX` par défaut |
+| Importer les N derniers jours | Plage de recherche (1 à 365 jours) |
+
+> **Pour Gmail** : activez l'accès IMAP dans les paramètres Gmail, puis créez un **Mot de passe d'application** : Compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications.
+
+Le mot de passe est stocké dans le **Windows Credential Manager** (jamais en clair sur le disque).
+
+> **En cas d'erreur de configuration** : rouvrir à tout moment via **Config → Configuration email...** pour corriger les paramètres.
+
+### Lancer un import
+
+1. Ouvrir la fenêtre **Dépenses**
+2. Cliquer sur `Import email`
+3. L'application se connecte, analyse les emails et télécharge les PDF en pièce jointe
+4. Un résumé indique le nombre d'emails analysés et de PDF trouvés
+5. Si des PDF sont trouvés, choisir le mode de traitement (tableau ou séquentiel)
+
+### Reconnaissance automatique
+
+L'application lit le texte de chaque PDF pour en extraire :
+- La **date** de la facture
+- Le **fournisseur** (nom en haut du document)
+- Le **montant TTC**
+- Le **taux de TVA**
+
+> Pour les factures générées informatiquement (PDF numérique), l'extraction est directe et fiable. Pour les factures scannées, un OCR (Tesseract) est utilisé en complément.
+
+---
+
+## 5. Scan factures par lot
 
 ### Accès
 
@@ -131,7 +182,7 @@ Le mode séquentiel traite **une facture à la fois** avec confirmation interact
 
 ---
 
-## 5. Gestion des Recettes
+## 6. Gestion des Recettes
 
 ### Saisir une recette
 
@@ -153,7 +204,7 @@ Même fonctionnement que pour les dépenses (cliquer sur la ligne, puis `Modifie
 
 ---
 
-## 6. Calculette TVA
+## 7. Calculette TVA
 
 La calculette est accessible dans les fenêtres Dépenses et Recettes via le bouton `Calculette TTC`.
 
@@ -169,7 +220,7 @@ Le champ `Montant` se remplit automatiquement avec le **montant TTC**, et le cha
 
 ---
 
-## 7. Contacts et Fournisseurs
+## 8. Contacts et Fournisseurs
 
 Accessible via le menu **Config → Contacts**.
 
@@ -183,7 +234,7 @@ Lors de la saisie d'une dépense ou recette, si le fournisseur/client n'existe p
 
 ---
 
-## 8. Synthèse comptable
+## 9. Synthèse comptable
 
 Accessible via le menu **Config → Synthèse**.
 
@@ -211,7 +262,7 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 9. Export PDF
+## 10. Export PDF
 
 1. Sélectionner la période (mois + année) dans la fenêtre principale
 2. Cliquer sur `Export PDF`
@@ -220,7 +271,7 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 10. Sauvegardes et Restauration
+## 11. Sauvegardes et Restauration
 
 ### Sauvegardes automatiques
 
@@ -244,7 +295,7 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 11. Déploiement multi-entreprise
+## 12. Déploiement multi-entreprise
 
 L'application peut être configurée pour n'importe quelle entreprise sans modifier le code. Toute la personnalisation passe par un seul fichier : `company.json`.
 
