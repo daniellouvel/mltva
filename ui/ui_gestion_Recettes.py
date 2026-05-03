@@ -43,6 +43,7 @@ class Ui_Dialog(object):
         middle = QHBoxLayout()
 
         form_widget = QWidget()
+        form_widget.setMinimumHeight(290)
         self.gridLayout = QGridLayout(form_widget)
         self.gridLayout.setObjectName("gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
