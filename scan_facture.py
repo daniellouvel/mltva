@@ -1,8 +1,6 @@
 import os
 import re
-import pytesseract
 import fitz  # PyMuPDF
-from PIL import Image
 from datetime import datetime
 
 TESSERACT_PATHS = [
@@ -21,18 +19,21 @@ def _find_tesseract():
     return None
 
 
-def _pdf_to_image(pdf_path):
+def _extract_text_direct(pdf_path):
+    """Extraction directe du texte depuis un PDF numérique (sans OCR)."""
     doc = fitz.open(pdf_path)
-    page = doc[0]
-    mat = fitz.Matrix(2.0, 2.0)  # zoom x2 pour meilleure qualité OCR
-    pix = page.get_pixmap(matrix=mat)
-    img_path = pdf_path + "_ocr_tmp.png"
-    pix.save(img_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
     doc.close()
-    return img_path
+    return text.strip()
 
 
-def _extract_text(file_path):
+def _extract_text_ocr(file_path):
+    """Extraction par OCR Tesseract — fallback pour PDFs scannés ou images."""
+    import pytesseract
+    from PIL import Image
+
     tess = _find_tesseract()
     if tess is None:
         raise FileNotFoundError(
@@ -43,7 +44,6 @@ def _extract_text(file_path):
         )
     pytesseract.pytesseract.tesseract_cmd = tess
 
-    # Détecter les langues disponibles, préférer fra sinon eng
     try:
         langs_disponibles = pytesseract.get_languages()
         lang = "fra" if "fra" in langs_disponibles else "eng"
@@ -54,7 +54,13 @@ def _extract_text(file_path):
     tmp_img = None
 
     if ext == ".pdf":
-        tmp_img = _pdf_to_image(file_path)
+        doc = fitz.open(file_path)
+        page = doc[0]
+        mat = fitz.Matrix(2.0, 2.0)
+        pix = page.get_pixmap(matrix=mat)
+        tmp_img = file_path + "_ocr_tmp.png"
+        pix.save(tmp_img)
+        doc.close()
         text = pytesseract.image_to_string(Image.open(tmp_img), lang=lang)
     else:
         text = pytesseract.image_to_string(Image.open(file_path), lang=lang)
@@ -65,10 +71,42 @@ def _extract_text(file_path):
     return text
 
 
+def _extract_text(file_path):
+    """
+    Stratégie : extraction directe en premier (PDFs numériques, fiable et rapide),
+    OCR en fallback si le texte extrait est trop court (PDF scanné ou image).
+    """
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == ".pdf":
+        direct = _extract_text_direct(file_path)
+        if len(direct) > 50:
+            return direct
+    return _extract_text_ocr(file_path)
+
+
+def _clean_montant(val: str) -> str:
+    """
+    Nettoie un montant extrait et le convertit en float string.
+    Gère les formats français : '1 234,56', '1.234,56', '1234.56', '1234,56'.
+    """
+    val = val.strip().replace("\xa0", " ").replace(" ", "")
+    if "," in val and "." in val:
+        # Format européen : 1.234,56 — le point est séparateur de milliers
+        val = val.replace(".", "").replace(",", ".")
+    elif "," in val:
+        # Format français standard : 1234,56
+        val = val.replace(",", ".")
+    # val est maintenant au format 1234.56
+    try:
+        return str(round(float(val), 2))
+    except ValueError:
+        return ""
+
+
 def _parse_date(text):
     patterns = [
-        r"\b(\d{2})[/\-\.](\d{2})[/\-\.](\d{4})\b",  # DD/MM/YYYY
-        r"\b(\d{2})[/\-\.](\d{2})[/\-\.](\d{2})\b",   # DD/MM/YY
+        r"\b(\d{2})[/\-\.](\d{2})[/\-\.](\d{4})\b",
+        r"\b(\d{2})[/\-\.](\d{2})[/\-\.](\d{2})\b",
     ]
     for pat in patterns:
         m = re.search(pat, text)
@@ -84,22 +122,28 @@ def _parse_date(text):
     return ""
 
 
+# Motif d'un montant monétaire : gère les séparateurs de milliers (espace, point)
+# et la virgule/point comme séparateur décimal
+_MONTANT_RE = r"([\d][\d\s .]*[\d][,\.][\d]{2}|[\d]{1,6}[,\.][\d]{2})"
+
+
 def _parse_montant_ttc(text):
-    # Cherche TTC suivi ou précédé d'un montant
     patterns = [
-        r"[Tt][Tt][Cc]\s*[:\s]*(\d+[\s,\.]\d{2})",
-        r"(\d+[\s,\.]\d{2})\s*[€]\s*[Tt][Tt][Cc]",
-        r"[Tt]otal\s+[Tt][Tt][Cc]\s*[:\s]*(\d+[\s,\.]\d{2})",
-        r"[Mm]ontant\s+[Tt][Tt][Cc]\s*[:\s]*(\d+[\s,\.]\d{2})",
+        rf"[Tt][Oo][Tt][Aa][Ll]\s+[Tt][Tt][Cc]\s*:?\s*{_MONTANT_RE}",
+        rf"[Mm]ontant\s+[Tt][Tt][Cc]\s*:?\s*{_MONTANT_RE}",
+        rf"[Tt][Tt][Cc]\s*:?\s*{_MONTANT_RE}",
+        rf"[Nn]et\s+[àa]\s+payer\s*:?\s*{_MONTANT_RE}",
+        rf"[Tt]otal\s+[àa]\s+payer\s*:?\s*{_MONTANT_RE}",
+        rf"[Tt]otal\s*:?\s*{_MONTANT_RE}",
+        rf"{_MONTANT_RE}\s*€?\s*[Tt][Tt][Cc]",
+        rf"{_MONTANT_RE}\s*€?\s*[Nn]et\s+[àa]\s+payer",
     ]
     for pat in patterns:
-        m = re.search(pat, text)
+        m = re.search(pat, text, re.IGNORECASE)
         if m:
-            val = m.group(1).replace(" ", "").replace(",", ".")
-            try:
-                return str(float(val))
-            except ValueError:
-                continue
+            result = _clean_montant(m.group(1))
+            if result:
+                return result
     return ""
 
 
@@ -115,31 +159,29 @@ def _parse_tva_rate(text):
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             rate = m.group(1).replace(",", ".")
-            return TVA_RATES.get(rate, TVA_RATES.get(rate.split(".")[0], "20%"))
+            return TVA_RATES.get(rate, TVA_RATES.get(rate.split(".")[0], "20.00%"))
     return ""
 
 
 def _parse_montant_tva(text):
     patterns = [
-        r"[Mm]ontant\s+TVA\s*[:\s]*(\d+[\s,\.]\d{2})",
-        r"TVA\s*[:\s]*(\d+[\s,\.]\d{2})\s*[€]",
-        r"(\d+[\s,\.]\d{2})\s*[€]\s*TVA",
+        rf"[Mm]ontant\s+TVA\s*:?\s*{_MONTANT_RE}",
+        rf"TVA\s*:?\s*{_MONTANT_RE}\s*€",
+        rf"{_MONTANT_RE}\s*€?\s*TVA",
     ]
     for pat in patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
-            val = m.group(1).replace(" ", "").replace(",", ".")
-            try:
-                return str(float(val))
-            except ValueError:
-                continue
+            result = _clean_montant(m.group(1))
+            if result:
+                return result
     return ""
 
 
 def _parse_fournisseur(text):
-    # Tente d'extraire le nom en haut du document (3 premières lignes non vides)
     lignes = [l.strip() for l in text.splitlines() if l.strip()]
-    mots_cles = {"facture", "invoice", "avoir", "devis", "bon", "date", "n°", "numero", "total", "ttc", "tva"}
+    mots_cles = {"facture", "invoice", "avoir", "devis", "bon", "date", "n°", "numero",
+                 "total", "ttc", "tva", "siret", "siren", "iban", "bic"}
     for ligne in lignes[:6]:
         if len(ligne) > 2 and not any(k in ligne.lower() for k in mots_cles):
             return ligne[:50]
@@ -149,7 +191,7 @@ def _parse_fournisseur(text):
 def scan_facture(file_path):
     """
     Analyse une facture (PDF ou image) et retourne un dict avec les champs trouvés.
-    Retourne un dict vide si l'analyse échoue.
+    Priorité : extraction texte direct (PDF numérique) → OCR Tesseract (PDF scanné/image).
     """
     text = _extract_text(file_path)
 
