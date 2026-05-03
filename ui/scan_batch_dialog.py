@@ -190,6 +190,21 @@ class ScanBatchDialog(QDialog):
             self.edit_montant.setText(result["montant"])
         self._recalc_tva()
 
+    def _check_duplicate(self, ttc, fournisseur, date_obj):
+        """Retourne les lignes existantes avec le même TTC + fournisseur sur le même mois."""
+        query = """
+            SELECT date, fournisseur, ttc FROM depenses
+            WHERE ttc = ? AND fournisseur = ?
+              AND strftime('%m', date) = ?
+              AND strftime('%Y', date) = ?
+        """
+        mois_str = f"{date_obj.month:02d}"
+        annee_str = str(date_obj.year)
+        try:
+            return self.db_manager.fetch_all(query, (ttc, fournisseur, mois_str, annee_str))
+        except Exception:
+            return []
+
     def _on_valider(self):
         date_text = self.edit_date.text().strip()
         fournisseur = self.combo_fournisseur.currentText().strip()
@@ -213,6 +228,22 @@ class ScanBatchDialog(QDialog):
         except ValueError as e:
             QMessageBox.warning(self, "Données invalides", str(e))
             return
+
+        # Vérification des doublons
+        doublons = self._check_duplicate(ttc, fournisseur, date_obj)
+        if doublons:
+            mois_annee = date_obj.strftime("%m/%Y")
+            rep = QMessageBox.question(
+                self, "Doublon détecté",
+                f"Une dépense identique existe déjà pour {mois_annee} :\n"
+                f"  Fournisseur : {fournisseur}\n"
+                f"  Montant TTC : {ttc:.2f} €\n\n"
+                "Voulez-vous l'enregistrer quand même ?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if rep != QMessageBox.Yes:
+                return
 
         if not self.db_manager.fournisseur_exists(fournisseur):
             rep = QMessageBox.question(
