@@ -1,4 +1,5 @@
 import os
+from company_config import COMPANY, get_logo_path
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
@@ -145,12 +146,13 @@ class PDFGenerator:
             )
 
             # En-tête avec logo et titre
-            logo_path = os.path.join(data_dir, "logo.jpg")
+            logo_path = get_logo_path()
+            company_name = COMPANY["name"]
             if os.path.exists(logo_path):
                 # Créer un tableau pour l'en-tête
                 header_data = [
-                    [Image(logo_path, width=1.5*inch, height=1.5*inch), 
-                     Paragraph(f"Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style)]
+                    [Image(logo_path, width=1.5*inch, height=1.5*inch),
+                     Paragraph(f"{company_name}<br/>Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style)]
                 ]
                 header_table = Table(header_data, colWidths=[2*inch, 4*inch])
                 header_table.setStyle(TableStyle([
@@ -160,8 +162,7 @@ class PDFGenerator:
                 ]))
                 elements.append(header_table)
             else:
-                # Si pas de logo, afficher juste le titre
-                elements.append(Paragraph(f"Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style))
+                elements.append(Paragraph(f"{company_name}<br/>Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style))
             
             elements.append(Spacer(1, 20))
 

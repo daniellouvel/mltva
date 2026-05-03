@@ -1,5 +1,10 @@
 # Constants.py - Centralisation des constantes et messages
 
+from company_config import COMPANY, get_db_path
+from version import APP_VERSION
+
+APP_NAME = COMPANY["name"]
+
 # Messages d'erreur
 ERROR_MESSAGES = {
     "INVALID_DATE": "Le format de la date est incorrect (jj/mm/aaaa).",
@@ -19,10 +24,8 @@ ERROR_MESSAGES = {
 
 import os as _os
 
-# Chemin DB unique : resolu absolu, base sur l'emplacement de constants.py
-# pour fonctionner depuis n'importe quel cwd (CLI, exe Nuitka, tests).
 _BASE_DIR = _os.path.dirname(_os.path.abspath(__file__))
-DB_PATH = _os.path.join(_BASE_DIR, "data", "mlbdd.db")
+DB_PATH = get_db_path()
 
 # Configuration de la base de données
 DB_CONFIG = {

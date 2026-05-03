@@ -1,0 +1,7 @@
+{
+  "name": "MLTVA",
+  "legal": "MLTVA SARL",
+  "logo": "data/Logo.jpg",
+  "db_name": "mlbdd.db",
+  "backup_dir": "data/backups"
+}

@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 
-################################################################################
-## Form generated from reading UI file 'main_window.ui'
-##
-## Created by: Qt User Interface Compiler version 6.8.2
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
+from company_config import COMPANY
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -141,9 +135,9 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", COMPANY["name"], None))
         self.actionContacts.setText(QCoreApplication.translate("MainWindow", u"Contacts", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\"><span style=\" font-size:48pt; font-style:italic;\">MLTVA</span></p></body></html>", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:48pt; font-style:italic;\">{COMPANY['name']}</span></p></body></html>", None))
         self.labellogo.setText("")
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"P\u00ebriode", None))
         self.moisComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"Janvier", None))

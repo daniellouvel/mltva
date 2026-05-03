@@ -15,6 +15,9 @@ from utils.backup import backup_database
 from ui.restore_dialog import RestoreDialog
 from ui.synthese_interface import SyntheseDialog
 from ui.aide_dialog import AideDialog
+from ui.about_dialog import AboutDialog
+from company_config import COMPANY, get_logo_path
+from version import APP_VERSION
 
 
 class MainWindow(QMainWindow):
@@ -25,6 +28,8 @@ class MainWindow(QMainWindow):
 
         self.db_manager = DatabaseManager()
         self.pdf_generator = PDFGenerator(self.db_manager)
+
+        self.setWindowTitle(f"{COMPANY['name']} — v{APP_VERSION}")
 
         self.load_periode()
         self._connect_buttons()
@@ -46,6 +51,11 @@ class MainWindow(QMainWindow):
         action_aide.setShortcut("F1")
         action_aide.triggered.connect(self.open_aide)
         self.ui.menuAide.addAction(action_aide)
+
+        action_about = QAction(f"À propos de {COMPANY['name']}...", self)
+        action_about.triggered.connect(self.open_about)
+        self.ui.menuAide.addSeparator()
+        self.ui.menuAide.addAction(action_about)
 
     def eventFilter(self, obj, event):
         if obj == self.ui.labellogo and event.type() == QEvent.Show and not self._logo_loaded:
@@ -69,9 +79,7 @@ class MainWindow(QMainWindow):
 
     def load_logo(self):
         try:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            image_path = os.path.join(script_dir, "..", "data", "Logo.jpg")
-            pixmap = QPixmap(image_path)
+            pixmap = QPixmap(get_logo_path())
             if pixmap.isNull():
                 raise FileNotFoundError(f"Impossible de charger l'image à {image_path}")
             self.ui.labellogo.setPixmap(pixmap)
@@ -160,4 +168,8 @@ class MainWindow(QMainWindow):
 
     def open_aide(self):
         dialog = AideDialog(self)
+        dialog.exec()
+
+    def open_about(self):
+        dialog = AboutDialog(self)
         dialog.exec()

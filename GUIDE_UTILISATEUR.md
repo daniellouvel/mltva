@@ -12,6 +12,7 @@
 8. [Synthèse comptable](#8-synthèse-comptable)
 9. [Export PDF](#9-export-pdf)
 10. [Sauvegardes et Restauration](#10-sauvegardes-et-restauration)
+11. [Déploiement multi-entreprise](#11-déploiement-multi-entreprise)
 
 ---
 
@@ -240,3 +241,50 @@ La dernière ligne affiche les **totaux annuels**.
 5. Redémarrer l'application
 
 > **Attention :** la restauration remplace toutes les données actuelles par celles de la sauvegarde choisie.
+
+---
+
+## 11. Déploiement multi-entreprise
+
+L'application peut être configurée pour n'importe quelle entreprise sans modifier le code. Toute la personnalisation passe par un seul fichier : `company.json`.
+
+### Fichier `company.json`
+
+```json
+{
+  "name": "NomEntreprise",
+  "legal": "NomEntreprise SARL",
+  "logo": "data/Logo.jpg",
+  "db_name": "mlbdd.db",
+  "backup_dir": "data/backups"
+}
+```
+
+| Champ | Description |
+|-------|-------------|
+| `name` | Nom affiché dans l'UI, les titres de fenêtres et le PDF |
+| `legal` | Dénomination légale (affiché dans "À propos") |
+| `logo` | Chemin relatif vers l'image du logo (JPG, PNG) |
+| `db_name` | Nom du fichier de base de données (dans `data/`) |
+| `backup_dir` | Dossier des sauvegardes automatiques |
+
+### Procédure de déploiement
+
+1. Copier le dossier complet de l'application vers le poste cible
+2. Éditer `company.json` avec les informations de la nouvelle entreprise
+3. Remplacer `data/Logo.jpg` par le logo de l'entreprise (même nom, ou mettre à jour `logo` dans le JSON)
+4. Lancer l'application — toute l'interface (titres, splash, PDF, aide) utilise automatiquement le nouveau nom
+
+> **Note :** si `company.json` est absent ou corrompu, l'application démarre avec les valeurs MLTVA par défaut.
+
+### Version de l'application
+
+La version courante est visible :
+- Dans le titre de la fenêtre principale : `NomEntreprise — v2.0.0`
+- Sur le splash screen au démarrage
+- Dans le menu **Aide → À propos**
+
+Pour mettre à jour la version lors d'une nouvelle release, modifier `version.py` :
+```python
+APP_VERSION = "2.1.0"
+```

@@ -5,6 +5,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
+from company_config import COMPANY
+
 SECTIONS = {
     "Démarrage": """
 <h2>Démarrage</h2>
@@ -256,7 +258,7 @@ Une sauvegarde de sécurité est créée automatiquement avant la restauration.
 class AideDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Aide — MLTVA")
+        self.setWindowTitle(f"Aide — {COMPANY['name']}")
         self.setMinimumSize(820, 560)
         self.setModal(False)
 

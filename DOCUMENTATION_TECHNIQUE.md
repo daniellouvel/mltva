@@ -4,13 +4,14 @@
 
 1. [Architecture générale](#1-architecture-générale)
 2. [Structure des fichiers](#2-structure-des-fichiers)
-3. [Base de données](#3-base-de-données)
-4. [Modules principaux](#4-modules-principaux)
-5. [Interface graphique (UI)](#5-interface-graphique-ui)
-6. [Système de sauvegarde](#6-système-de-sauvegarde)
-7. [Compilation et distribution](#7-compilation-et-distribution)
-8. [Dépendances](#8-dépendances)
-9. [Ajouter une fonctionnalité](#9-ajouter-une-fonctionnalité)
+3. [Versioning et configuration entreprise](#3-versioning-et-configuration-entreprise)
+4. [Base de données](#4-base-de-données)
+5. [Modules principaux](#5-modules-principaux)
+6. [Interface graphique (UI)](#6-interface-graphique-ui)
+7. [Système de sauvegarde](#7-système-de-sauvegarde)
+8. [Compilation et distribution](#8-compilation-et-distribution)
+9. [Dépendances](#9-dépendances)
+10. [Ajouter une fonctionnalité](#10-ajouter-une-fonctionnalité)
 
 ---
 
@@ -41,15 +42,18 @@ L'application suit un modèle simple **sans séparation MVC stricte** : chaque f
 ```
 mltva/
 ├── main.py                        # Point d'entrée, chargement du thème
+├── version.py                     # APP_VERSION (source unique du numéro de version)
+├── company.json                   # Config entreprise (nom, logo, DB, backup)
+├── company_config.py              # Chargeur de company.json, helpers de chemins
 ├── lancer.bat                     # Lancement développement
 ├── build_nuitka.bat               # Script de compilation exécutable
 ├── requirements.txt               # PySide6, reportlab
-├── constants.py                   # DB_CONFIG, UI_CONFIG, ERROR_MESSAGES
+├── constants.py                   # DB_CONFIG, UI_CONFIG, ERROR_MESSAGES, APP_NAME
 ├── util.py                        # Fonctions utilitaires partagées
 ├── database.py                    # DatabaseManager (singleton SQLite)
 ├── calculette.py                  # CalculetteDialog (fenêtre calculette)
 ├── pdf_generator.py               # PDFGenerator (ReportLab)
-├── gestion_forniseur_a_regler.py  # Fenêtre fournisseurs à régler
+├── gestion_fournisseur_a_regler.py # Fenêtre fournisseurs à régler
 │
 ├── ui/
 │   ├── style.qss                  # Thème visuel (Qt Style Sheets)
@@ -61,6 +65,7 @@ mltva/
 │   ├── synthese_interface.py      # SyntheseDialog
 │   ├── restore_dialog.py          # RestoreDialog
 │   ├── aide_dialog.py             # AideDialog (fenêtre d'aide)
+│   ├── about_dialog.py            # AboutDialog (À propos — version + entreprise)
 │   ├── async_worker.py            # Helpers threading (run_with_progress)
 │   ├── scan_batch_dialog.py       # Mode séquentiel (facture par facture)
 │   ├── scan_batch_table_dialog.py # Mode tableau (toutes factures à la fois)
@@ -85,7 +90,79 @@ data/
 
 ---
 
-## 3. Base de données
+## 3. Versioning et configuration entreprise
+
+### `version.py` — Numéro de version
+
+Source unique de vérité pour la version de l'application :
+
+```python
+APP_VERSION = "2.0.0"
+```
+
+Importé dans `constants.py`, `main.py` et `ui/about_dialog.py`. Pour bumper la version avant une release, **modifier uniquement ce fichier**.
+
+### `company.json` — Configuration entreprise
+
+Fichier JSON à la racine du projet, éditable sans toucher au code :
+
+```json
+{
+  "name": "MLTVA",
+  "legal": "MLTVA SARL",
+  "logo": "data/Logo.jpg",
+  "db_name": "mlbdd.db",
+  "backup_dir": "data/backups"
+}
+```
+
+| Champ | Usage |
+|-------|-------|
+| `name` | Affiché dans titres de fenêtres, splash screen, PDF, aide |
+| `legal` | Dénomination légale dans le dialogue "À propos" |
+| `logo` | Chemin relatif à la racine du projet |
+| `db_name` | Nom du fichier `.db` dans `data/` — permet d'isoler les données par client |
+| `backup_dir` | Dossier des sauvegardes (chemin relatif à la racine) |
+
+Si `company.json` est absent ou corrompu, les valeurs MLTVA sont utilisées en fallback (aucune erreur au démarrage).
+
+### `company_config.py` — Chargeur de configuration
+
+```python
+from company_config import COMPANY, get_logo_path, get_db_path, get_backup_dir
+
+COMPANY["name"]       # → "MLTVA" (ou le nom configuré)
+COMPANY["legal"]      # → "MLTVA SARL"
+get_logo_path()       # → chemin absolu vers le logo
+get_db_path()         # → chemin absolu vers mlbdd.db (ou db_name configuré)
+get_backup_dir()      # → chemin absolu vers data/backups/
+```
+
+Tous les chemins sont résolus en **absolu** depuis `__file__`, ce qui les rend insensibles au répertoire de travail courant (CWD). Cela corrige le bug précédent dans `utils/backup.py` qui utilisait des chemins relatifs au CWD.
+
+### Où `COMPANY` et `APP_VERSION` sont utilisés
+
+| Fichier | Usage |
+|---------|-------|
+| `constants.py` | `APP_NAME = COMPANY["name"]`, `DB_PATH = get_db_path()` |
+| `main.py` | `app.setApplicationName()`, version sur splash screen |
+| `ui/main_window.py` | Titre fenêtre `"Nom — v2.0.0"`, menu "À propos" |
+| `ui/ui_main_window.py` | Label central avec le nom de l'entreprise |
+| `ui/aide_dialog.py` | Titre `"Aide — Nom"` |
+| `ui/about_dialog.py` | Affichage complet nom, version, infos légales |
+| `pdf_generator.py` | Nom entreprise dans l'en-tête du PDF, logo via `get_logo_path()` |
+| `utils/backup.py` | DB source et dossier backup via `get_db_path()` / `get_backup_dir()` |
+
+### Déployer chez une nouvelle entreprise
+
+1. Copier le dossier de l'application
+2. Éditer `company.json` (nom, logo, db_name si isolation souhaitée)
+3. Remplacer `data/Logo.jpg` par le logo de l'entreprise
+4. Lancer → toute l'UI s'adapte automatiquement
+
+---
+
+## 4. Base de données
 
 **Fichier :** `data/mlbdd.db` (SQLite 3)
 
@@ -153,7 +230,7 @@ WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?;
 
 ---
 
-## 4. Modules principaux
+## 5. Modules principaux
 
 ### `database.py` — DatabaseManager
 
@@ -299,7 +376,7 @@ Chaque mode utilise `run_with_progress()` pour ne pas geler l'UI lors de l'OCR T
 
 ---
 
-## 5. Interface graphique (UI)
+## 6. Interface graphique (UI)
 
 ### Hiérarchie des classes
 
@@ -367,7 +444,7 @@ Pour modifier le thème : éditer `ui/style.qss` — les changements sont pris e
 
 ---
 
-## 6. Système de sauvegarde
+## 7. Système de sauvegarde
 
 **Fichier :** `utils/backup.py`
 
@@ -381,22 +458,23 @@ def backup_database():
     _do_annual(today)   # mlbdd_AAAA.db         (pas de limite)
 ```
 
-**Constantes configurables dans `backup.py` :**
+**Chemins résolus depuis `company_config.py` (v2.0) :**
 ```python
-DB_SOURCE  = "data/mlbdd.db"
-BACKUP_DIR = "data/backups"
+# Plus de chemins CWD-relatifs — tout est absolu via company_config
+db_source  = get_db_path()    # chemin absolu vers mlbdd.db (configurable)
+backup_dir = get_backup_dir() # chemin absolu vers data/backups/ (configurable)
 MAX_DAILY  = 10
 MAX_MONTHLY = 12
 ```
 
 **Restauration (`ui/restore_dialog.py`) :**
-1. Liste les fichiers dans `data/backups/` par catégorie
+1. Liste les fichiers dans le dossier `backup_dir` par catégorie
 2. Avant restauration, crée une sauvegarde de sécurité de la base actuelle
-3. Copie le fichier sélectionné vers `data/mlbdd.db`
+3. Copie le fichier sélectionné vers `get_db_path()`
 
 ---
 
-## 7. Compilation et distribution
+## 8. Compilation et distribution
 
 ### Prérequis
 
@@ -439,7 +517,7 @@ dist/mltva/          ← dossier à distribuer (~116 Mo)
 
 ---
 
-## 8. Dépendances
+## 9. Dépendances
 
 | Package | Version | Usage |
 |---------|---------|-------|
@@ -451,7 +529,7 @@ Python standard library utilisée : `sqlite3`, `datetime`, `os`, `sys`, `shutil`
 
 ---
 
-## 9. Ajouter une fonctionnalité
+## 10. Ajouter une fonctionnalité
 
 ### Ajouter un champ en base de données
 
