@@ -16,6 +16,7 @@ from ui.restore_dialog import RestoreDialog
 from ui.synthese_interface import SyntheseDialog
 from ui.aide_dialog import AideDialog
 from ui.about_dialog import AboutDialog
+from ui.email_config_dialog import EmailConfigDialog
 from company_config import COMPANY, get_logo_path
 from version import APP_VERSION
 
@@ -46,6 +47,11 @@ class MainWindow(QMainWindow):
         self.action_restaurer = QAction("Restaurer une sauvegarde...", self)
         self.action_restaurer.triggered.connect(self.open_restore_dialog)
         self.ui.menuConfig.addAction(self.action_restaurer)
+
+        self.action_email_config = QAction("Configuration email...", self)
+        self.action_email_config.triggered.connect(self.open_email_config)
+        self.ui.menuConfig.addSeparator()
+        self.ui.menuConfig.addAction(self.action_email_config)
 
         action_aide = QAction("Guide d'utilisation", self)
         action_aide.setShortcut("F1")
@@ -172,4 +178,8 @@ class MainWindow(QMainWindow):
 
     def open_about(self):
         dialog = AboutDialog(self)
+        dialog.exec()
+
+    def open_email_config(self):
+        dialog = EmailConfigDialog(self)
         dialog.exec()

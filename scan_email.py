@@ -11,7 +11,8 @@ try:
 except ImportError:
     KEYRING_AVAILABLE = False
 
-EMAIL_CONFIG_PATH = "data/email_config.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EMAIL_CONFIG_PATH = os.path.join(_BASE_DIR, "data", "email_config.json")
 KEYRING_SERVICE = "mltva-imap"
 
 
@@ -64,7 +65,7 @@ def load_email_config():
 
 def save_email_config(config):
     """Sauvegarde la config (sans le password) en JSON, password dans keyring."""
-    os.makedirs(os.path.dirname(EMAIL_CONFIG_PATH), exist_ok=True)
+    os.makedirs(os.path.join(_BASE_DIR, "data"), exist_ok=True)
     cfg = {k: v for k, v in config.items() if k != "password"}
     with open(EMAIL_CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2, ensure_ascii=False)
