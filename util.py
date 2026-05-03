@@ -3,9 +3,6 @@ from database import DatabaseManager
 from PySide6.QtWidgets import QMessageBox
 from typing import Optional
 
-# Ligne de débogage pour confirmer le chargement du module
-print("Chargement du module util.py")
-
 MOIS_NUMERIQUE_MAP = {
     "Janvier": "01", "Février": "02", "Mars": "03", "Avril": "04",
     "Mai": "05", "Juin": "06", "Juillet": "07", "Août": "08",
@@ -50,13 +47,8 @@ class PeriodeManager:
         return self.mois, self.annee
 
     def convert_month_to_number(self, mois):
-        """Convertit un mois en numéro."""
-        mois_dict = {
-            "Janvier": 1, "Février": 2, "Mars": 3, "Avril": 4,
-            "Mai": 5, "Juin": 6, "Juillet": 7, "Août": 8,
-            "Septembre": 9, "Octobre": 10, "Novembre": 11, "Décembre": 12
-        }
-        return mois_dict.get(mois, 1)
+        """Alias d'instance vers la fonction module convert_month_to_number."""
+        return convert_month_to_number(mois)
 
 
 def calculate_tva(montant_ttc_text: str, tva_rate_text: str) -> Optional[float]:

@@ -46,6 +46,14 @@ Desktop.ini
 build/
 dist/
 *.spec
+*.exe
+*.lnk
+nuitka-crash-report.xml
+main.build/
+main.dist/
+
+# Factures de test (PDF binaires)
+data/factures_test/
 
 # Claude Code
 .claude/
