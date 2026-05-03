@@ -19,7 +19,7 @@ from ui.about_dialog import AboutDialog
 from ui.email_config_dialog import EmailConfigDialog
 from ui.company_config_dialog import CompanyConfigDialog
 from company_config import COMPANY, get_logo_path
-from version import APP_VERSION
+from version import APP_VERSION, APP_NAME
 
 
 class MainWindow(QMainWindow):
@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
         self.db_manager = DatabaseManager()
         self.pdf_generator = PDFGenerator(self.db_manager)
 
-        self.setWindowTitle(f"{COMPANY['name']} — v{APP_VERSION}")
+        self.setWindowTitle(f"{APP_NAME} — v{APP_VERSION}")
 
         self.load_periode()
         self._connect_buttons()
@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         action_aide.triggered.connect(self.open_aide)
         self.ui.menuAide.addAction(action_aide)
 
-        action_about = QAction(f"À propos de {COMPANY['name']}...", self)
+        action_about = QAction(f"À propos de {APP_NAME}...", self)
         action_about.triggered.connect(self.open_about)
         self.ui.menuAide.addSeparator()
         self.ui.menuAide.addAction(action_about)
@@ -192,6 +192,6 @@ class MainWindow(QMainWindow):
     def open_company_config(self):
         dialog = CompanyConfigDialog(self)
         if dialog.exec():
-            self.setWindowTitle(f"{COMPANY['name']} — v{APP_VERSION}")
+            self.setWindowTitle(f"{APP_NAME} — v{APP_VERSION}")
             self._logo_loaded = False
             self.load_logo()
