@@ -65,6 +65,13 @@ class AboutDialog(QDialog):
         version_label.setStyleSheet("color: #95A5A6; font-size: 9pt;")
         layout.addWidget(version_label)
 
+        company_display = COMPANY.get("legal") or COMPANY.get("name", "")
+        if company_display:
+            licensed_label = QLabel(f"Version accordée à : {company_display}")
+            licensed_label.setAlignment(Qt.AlignCenter)
+            licensed_label.setStyleSheet("color: #2C5F8A; font-size: 9pt; font-style: italic;")
+            layout.addWidget(licensed_label)
+
         # ── Développeur (hardcodé) ────────────────────────────────────────
         _separator(layout)
         layout.addWidget(_section_title("Développeur"))
