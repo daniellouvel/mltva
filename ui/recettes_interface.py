@@ -124,11 +124,13 @@ class GestionRecettes(GestionBase):
     def _toggle_second_line(self, checked):
         for w in [self.ui.labelMontant2, self.ui.lineEditMontant2,
                   self.ui.labelTVA2, self.ui.comboBoxTVA2,
-                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2]:
+                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2,
+                  self.ui.labelCommentaire2, self.ui.lineEditCommentaire2]:
             w.setVisible(checked)
         if not checked:
             self.ui.lineEditMontant2.clear()
             self.ui.lineEditMontantTVA2.clear()
+            self.ui.lineEditCommentaire2.clear()
 
     def _calculate_tva2(self):
         montant_tva = calculate_tva(self.ui.lineEditMontant2.text(), self.ui.comboBoxTVA2.currentText())
@@ -168,9 +170,10 @@ class GestionRecettes(GestionBase):
                         tva2 = float(self.ui.comboBoxTVA2.currentText().strip('%'))
                         tva2_text = self.ui.lineEditMontantTVA2.text()
                         montant_tva2 = float(tva2_text) if tva2_text else 0.0
+                        commentaire2 = self.ui.lineEditCommentaire2.text()
                         self.db_manager.insert_recette(
                             formatted_date, client, paiement, numero_facture,
-                            float(montant2_text), tva2, montant_tva2, commentaire
+                            float(montant2_text), tva2, montant_tva2, commentaire2
                         )
                 QMessageBox.information(self, "Succès", "La recette a été ajoutée avec succès.")
                 self.load_recettes()
@@ -186,8 +189,8 @@ class GestionRecettes(GestionBase):
         self.ui.lineEditMontant.clear()
         self.ui.comboBoxTVA.setCurrentIndex(0)
         self.ui.lineEditMontantTVA.clear()
-        self.ui.checkBox2emeLigne.setChecked(False)
         self.ui.lineEditCommentaire.clear()
+        self.ui.checkBox2emeLigne.setChecked(False)
         self.selected_row_id = None
         self.ui.pushButtonValider.setEnabled(True)
 

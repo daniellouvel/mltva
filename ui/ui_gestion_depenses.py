@@ -110,8 +110,19 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.labelMontantTVA2, 10, 0)
         self.gridLayout.addWidget(self.lineEditMontantTVA2, 10, 1)
 
+        self.checkBoxValidation2 = QCheckBox("Validation (2ème)")
+        self.checkBoxValidation2.setObjectName("checkBoxValidation2")
+        self.gridLayout.addWidget(self.checkBoxValidation2, 11, 1)
+
+        self.labelCommentaire2 = QLabel("Commentaire (2ème) :")
+        self.lineEditCommentaire2 = QLineEdit()
+        self.lineEditCommentaire2.setObjectName("lineEditCommentaire2")
+        self.gridLayout.addWidget(self.labelCommentaire2, 12, 0)
+        self.gridLayout.addWidget(self.lineEditCommentaire2, 12, 1)
+
         for w in [self.labelTTC2, self.lineEditMontant2, self.labelTVA2,
-                  self.comboBoxTVA2, self.labelMontantTVA2, self.lineEditMontantTVA2]:
+                  self.comboBoxTVA2, self.labelMontantTVA2, self.lineEditMontantTVA2,
+                  self.checkBoxValidation2, self.labelCommentaire2, self.lineEditCommentaire2]:
             w.setVisible(False)
 
         # Calendrier (caché par défaut)

@@ -297,9 +297,11 @@ class GestionDepenses(GestionBase):
                         tva2 = float(self.ui.comboBoxTVA2.currentText().strip('%'))
                         tva2_text = self.ui.lineEditMontantTVA2.text()
                         montant_tva2 = float(tva2_text) if tva2_text else 0.0
+                        validation2 = "Oui" if self.ui.checkBoxValidation2.isChecked() else "Non"
+                        commentaire2 = self.ui.lineEditCommentaire2.text()
                         self.db_manager.insert_depense(
                             formatted_date, fournisseur, float(ttc2_text),
-                            tva2, montant_tva2, validation, commentaire
+                            tva2, montant_tva2, validation2, commentaire2
                         )
                 QMessageBox.information(self, "Succès", ERROR_MESSAGES["ADD_SUCCESS"])
                 self.load_depenses()
@@ -312,11 +314,15 @@ class GestionDepenses(GestionBase):
     def _toggle_second_line(self, checked):
         for w in [self.ui.labelTTC2, self.ui.lineEditMontant2,
                   self.ui.labelTVA2, self.ui.comboBoxTVA2,
-                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2]:
+                  self.ui.labelMontantTVA2, self.ui.lineEditMontantTVA2,
+                  self.ui.checkBoxValidation2,
+                  self.ui.labelCommentaire2, self.ui.lineEditCommentaire2]:
             w.setVisible(checked)
         if not checked:
             self.ui.lineEditMontant2.clear()
             self.ui.lineEditMontantTVA2.clear()
+            self.ui.checkBoxValidation2.setChecked(False)
+            self.ui.lineEditCommentaire2.clear()
 
     def _calculate_tva2(self):
         montant_tva = calculate_tva(self.ui.lineEditMontant2.text(), self.ui.comboBoxTVA2.currentText())
