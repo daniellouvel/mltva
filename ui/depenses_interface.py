@@ -18,6 +18,7 @@ from calculette import CalculetteDialog
 from scan_facture import scan_facture
 from scan_email import load_email_config, fetch_invoice_pdfs
 from ui.scan_batch_dialog import ScanBatchDialog
+from ui.scan_batch_table_dialog import ScanBatchTableDialog
 from ui.email_config_dialog import EmailConfigDialog
 from ui.async_worker import run_with_progress
 
@@ -448,15 +449,52 @@ class GestionDepenses(GestionBase):
             handle_exception(e, "Erreur lors du scan de la facture")
 
     def _scan_batch(self, file_paths):
-        """Scan de plusieurs factures via le dialogue de traitement par lot."""
-        dlg = ScanBatchDialog(
-            file_paths, self.db_manager,
-            self.mois, self.annee,
-            self.selected_month, self.selected_year,
-            parent=self
-        )
+        """
+        Scan de plusieurs factures : laisse l'utilisateur choisir entre
+        le mode tableau (vue d'ensemble) et le mode séquentiel (1 par 1).
+        """
+        mode = self._choose_batch_mode(len(file_paths))
+        if mode is None:
+            return
+        if mode == "table":
+            dlg = ScanBatchTableDialog(
+                file_paths, self.db_manager,
+                self.mois, self.annee,
+                self.selected_month, self.selected_year,
+                parent=self
+            )
+        else:
+            dlg = ScanBatchDialog(
+                file_paths, self.db_manager,
+                self.mois, self.annee,
+                self.selected_month, self.selected_year,
+                parent=self
+            )
         dlg.exec()
         self.load_depenses()
+
+    def _choose_batch_mode(self, nb_files):
+        """Affiche un dialogue de choix Tableau / Séquentiel. Retourne 'table', 'sequential' ou None."""
+        box = QMessageBox(self)
+        box.setWindowTitle("Mode de traitement")
+        box.setIcon(QMessageBox.Question)
+        box.setText(f"{nb_files} facture(s) à traiter — choisissez le mode :")
+        box.setInformativeText(
+            "<b>Tableau global</b> : vue d'ensemble, modifications inline, "
+            "validation par cases à cocher, enregistrement en bloc.<br><br>"
+            "<b>Séquentiel</b> : une facture après l'autre, validation individuelle."
+        )
+        btn_table = box.addButton("Tableau global", QMessageBox.AcceptRole)
+        btn_seq = box.addButton("Séquentiel", QMessageBox.ActionRole)
+        box.addButton("Annuler", QMessageBox.RejectRole)
+        box.setDefaultButton(btn_table)
+        box.exec()
+        clicked = box.clickedButton()
+        if clicked is btn_table:
+            return "table"
+        if clicked is btn_seq:
+            return "sequential"
+        return None
 
     def on_import_email(self):
         """Importe les factures PDF reçues par email puis lance le traitement par lot."""
