@@ -65,7 +65,8 @@ mltva/
 │   ├── synthese_interface.py      # SyntheseDialog
 │   ├── restore_dialog.py          # RestoreDialog
 │   ├── aide_dialog.py             # AideDialog (fenêtre d'aide)
-│   ├── about_dialog.py            # AboutDialog (À propos — version + entreprise)
+│   ├── about_dialog.py            # AboutDialog (3 sections : logiciel, développeur, entreprise)
+│   ├── company_config_dialog.py   # CompanyConfigDialog (Config → Entreprise)
 │   ├── async_worker.py            # Helpers threading (run_with_progress)
 │   ├── scan_batch_dialog.py       # Mode séquentiel (facture par facture)
 │   ├── scan_batch_table_dialog.py # Mode tableau (toutes factures à la fois)
@@ -92,20 +93,22 @@ data/
 
 ## 3. Versioning et configuration entreprise
 
-### `version.py` — Numéro de version
+### `version.py` — Numéro de version et nom logiciel
 
-Source unique de vérité pour la version de l'application :
+Source unique de vérité pour la version et le nom du logiciel :
 
 ```python
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
+APP_NAME    = "MLTVA"   # Nom du logiciel — indépendant du nom de l'entreprise
 ```
 
-Importé dans `constants.py`, `main.py` et `ui/about_dialog.py`. Pour bumper la version avant une release, **modifier uniquement ce fichier**.
+`APP_NAME` est le nom du logiciel (invariant), distinct de `COMPANY["name"]` qui est le nom de l'entreprise cliente. Pour bumper la version avant une release, **modifier uniquement ce fichier**.
 
 ### Historique des versions
 
 | Version | Changements principaux |
 |---------|----------------------|
+| 2.2.0 | Checkbox "2ème ligne TVA" (dépenses + recettes), Config → Entreprise (company_config_dialog), About dialog 3 sections (logiciel/développeur/entreprise), APP_NAME constant |
 | 2.1.0 | Extraction texte direct PDF (PyMuPDF), regex montants robustes, config email depuis menu Config |
 | 2.0.0 | Versioning, configuration multi-entreprise (`company.json`), dialogue À propos, chemins absolus |
 | 1.x | Audit cleanup, scan batch tableau + séquentiel, threading async OCR/IMAP |
@@ -117,7 +120,14 @@ Fichier JSON à la racine du projet, éditable sans toucher au code :
 ```json
 {
   "name": "MLTVA",
-  "legal": "MLTVA SARL",
+  "legal": "Menuiserie Letellier",
+  "address": "6 Rte de la Flamme Olympique",
+  "postal_code": "76110",
+  "city": "Tocqueville-les-Murs",
+  "phone": "02 35 29 44 34",
+  "email": "menuiserie.letellier@gmail.com",
+  "siret": "53038715800021",
+  "tva_intra": "FR64530387158",
   "logo": "data/Logo.jpg",
   "db_name": "mlbdd.db",
   "backup_dir": "data/backups"
@@ -127,8 +137,15 @@ Fichier JSON à la racine du projet, éditable sans toucher au code :
 | Champ | Usage |
 |-------|-------|
 | `name` | Affiché dans titres de fenêtres, splash screen, PDF, aide |
-| `legal` | Dénomination légale dans le dialogue "À propos" |
-| `logo` | Chemin relatif à la racine du projet |
+| `legal` | Dénomination légale dans "À propos" et en-tête PDF |
+| `address` | Adresse rue (en-tête PDF, dialogue "À propos") |
+| `postal_code` | Code postal |
+| `city` | Ville |
+| `phone` | Téléphone |
+| `email` | Email de l'entreprise |
+| `siret` | SIRET (14 chiffres) |
+| `tva_intra` | Numéro TVA intracommunautaire |
+| `logo` | Chemin absolu ou relatif à la racine du projet |
 | `db_name` | Nom du fichier `.db` dans `data/` — permet d'isoler les données par client |
 | `backup_dir` | Dossier des sauvegardes (chemin relatif à la racine) |
 
@@ -137,13 +154,17 @@ Si `company.json` est absent ou corrompu, les valeurs MLTVA sont utilisées en f
 ### `company_config.py` — Chargeur de configuration
 
 ```python
-from company_config import COMPANY, get_logo_path, get_db_path, get_backup_dir
+from company_config import COMPANY, get_logo_path, get_db_path, get_backup_dir, reload
 
 COMPANY["name"]       # → "MLTVA" (ou le nom configuré)
-COMPANY["legal"]      # → "MLTVA SARL"
-get_logo_path()       # → chemin absolu vers le logo
+COMPANY["legal"]      # → dénomination légale
+get_logo_path()       # → chemin absolu vers le logo (gère absolu + relatif)
 get_db_path()         # → chemin absolu vers mlbdd.db (ou db_name configuré)
 get_backup_dir()      # → chemin absolu vers data/backups/
+
+reload()              # Relit company.json et met à jour COMPANY en place
+                      # Tous les modules ayant importé COMPANY voient les nouvelles valeurs
+                      # sans redémarrage — utilisé après sauvegarde via Config → Entreprise
 ```
 
 Tous les chemins sont résolus en **absolu** depuis `__file__`, ce qui les rend insensibles au répertoire de travail courant (CWD). Cela corrige le bug précédent dans `utils/backup.py` qui utilisait des chemins relatifs au CWD.
@@ -154,11 +175,12 @@ Tous les chemins sont résolus en **absolu** depuis `__file__`, ce qui les rend 
 |---------|-------|
 | `constants.py` | `APP_NAME = COMPANY["name"]`, `DB_PATH = get_db_path()` |
 | `main.py` | `app.setApplicationName()`, version sur splash screen |
-| `ui/main_window.py` | Titre fenêtre `"Nom — v2.0.0"`, menu "À propos" |
+| `ui/main_window.py` | Titre fenêtre `"MLTVA — v2.2.0"` (APP_NAME + APP_VERSION), menu "À propos" et "Entreprise..." |
+| `ui/company_config_dialog.py` | Formulaire édition company.json (tous champs + logo), appelle `reload()` |
 | `ui/ui_main_window.py` | Label central avec le nom de l'entreprise |
 | `ui/aide_dialog.py` | Titre `"Aide — Nom"` |
-| `ui/about_dialog.py` | Affichage complet nom, version, infos légales |
-| `pdf_generator.py` | Nom entreprise dans l'en-tête du PDF, logo via `get_logo_path()` |
+| `ui/about_dialog.py` | 3 sections : Logiciel (APP_NAME + version), Développeur (hardcodé), Entreprise (COMPANY) |
+| `pdf_generator.py` | En-tête 3 colonnes : logo \| titre+période \| coordonnées entreprise |
 | `utils/backup.py` | DB source et dossier backup via `get_db_path()` / `get_backup_dir()` |
 
 ### Déployer chez une nouvelle entreprise
@@ -202,6 +224,9 @@ Tous les chemins sont résolus en **absolu** depuis `__file__`, ce qui les rend 
 | `tva` | REAL | Taux de TVA |
 | `montant_tva` | REAL | Montant de la TVA |
 | `commentaire` | TEXT | Texte libre |
+| `validation` | TEXT | `"Oui"` ou `"Non"` (DEFAULT 'Non', ajouté en migration v2.2) |
+
+> **Compatibilité :** la colonne `validation` est ajoutée via migration idempotente au démarrage (`PRAGMA table_info` → `ALTER TABLE ADD COLUMN`). Les fichiers `.db` des versions précédentes restent compatibles.
 
 ### Table `contacts`
 

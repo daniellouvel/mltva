@@ -45,6 +45,7 @@ La fenêtre principale comporte :
   - `Synthèse...` — synthèse comptable mensuelle et annuelle
   - `Restaurer une sauvegarde...` — restauration de la base de données
   - `Configuration email...` — paramètres IMAP pour l'import de factures
+  - `Entreprise...` — coordonnées de l'entreprise et logo
 - **Menu Aide** :
   - `Guide d'utilisation` (F1) — cette aide
   - `À propos` — version et informations de l'application
@@ -67,6 +68,19 @@ La fenêtre principale comporte :
    - **Commentaire** — texte libre (optionnel)
    - **Validation** — cocher si la dépense est validée/payée
 3. Cliquer sur `Valider` ou appuyer sur `Entrée`
+
+### Facture avec deux taux de TVA (2ème ligne)
+
+Certaines factures comportent deux lignes avec des taux de TVA différents (ex : main d'œuvre à 10% et matériaux à 20%).
+
+1. Cocher **"2ème ligne (TVA différente)"** dans le formulaire
+2. Des champs supplémentaires apparaissent :
+   - **TTC 2** — montant TTC de la deuxième ligne
+   - **TVA 2** — taux de la deuxième ligne
+   - **Montant TVA 2** — calculé automatiquement
+   - **Validation 2** — cocher si cette ligne est validée
+   - **Commentaire 2** — texte libre (optionnel)
+3. Cliquer sur `Valider` — deux lignes sont créées en base avec le même numéro de facture implicite
 
 ### Modifier une dépense
 
@@ -198,6 +212,12 @@ Le mode séquentiel traite **une facture à la fois** avec confirmation interact
    - **Commentaire** — texte libre (optionnel)
 3. Cliquer sur `Valider`
 
+### Facture avec deux taux de TVA (2ème ligne)
+
+Cocher **"2ème ligne (TVA différente)"** pour saisir un deuxième montant avec un taux de TVA distinct.  
+Des champs supplémentaires apparaissent (Montant 2, TVA 2, Montant TVA 2 auto-calculé, Commentaire 2).  
+Deux lignes sont créées en base pour le même client/facture.
+
 ### Modifier / Supprimer
 
 Même fonctionnement que pour les dépenses (cliquer sur la ligne, puis `Modifier` ou `Supprimer`).
@@ -295,47 +315,57 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 12. Déploiement multi-entreprise
+## 12. Configuration de l'entreprise
 
-L'application peut être configurée pour n'importe quelle entreprise sans modifier le code. Toute la personnalisation passe par un seul fichier : `company.json`.
+### Via l'interface (recommandé)
 
-### Fichier `company.json`
+Aller dans **Config → Entreprise...** pour renseigner les coordonnées de l'entreprise directement depuis l'application :
+
+| Champ | Description |
+|-------|-------------|
+| Nom | Nom court affiché dans l'UI |
+| Dénomination légale | Raison sociale complète |
+| Adresse | Rue |
+| Code postal / Ville | Code postal et ville |
+| Téléphone | Numéro de téléphone |
+| Email | Adresse email de l'entreprise |
+| SIRET | Numéro SIRET (14 chiffres) |
+| TVA intracommunautaire | Numéro TVA intra (FR...) |
+| Logo | Chemin vers l'image logo — cliquer sur **Parcourir…** pour choisir un fichier JPG/PNG |
+
+Les modifications sont appliquées immédiatement (logo et titre de fenêtre rechargés sans redémarrage).
+
+### Via le fichier `company.json` (déploiement)
+
+Pour déployer chez une nouvelle entreprise sans accès à l'interface, éditer directement `company.json` :
 
 ```json
 {
   "name": "NomEntreprise",
   "legal": "NomEntreprise SARL",
+  "address": "1 rue de la Paix",
+  "postal_code": "75001",
+  "city": "Paris",
+  "phone": "01 23 45 67 89",
+  "email": "contact@entreprise.fr",
+  "siret": "12345678900012",
+  "tva_intra": "FR12345678900",
   "logo": "data/Logo.jpg",
   "db_name": "mlbdd.db",
   "backup_dir": "data/backups"
 }
 ```
 
-| Champ | Description |
-|-------|-------------|
-| `name` | Nom affiché dans l'UI, les titres de fenêtres et le PDF |
-| `legal` | Dénomination légale (affiché dans "À propos") |
-| `logo` | Chemin relatif vers l'image du logo (JPG, PNG) |
-| `db_name` | Nom du fichier de base de données (dans `data/`) |
-| `backup_dir` | Dossier des sauvegardes automatiques |
-
-### Procédure de déploiement
-
-1. Copier le dossier complet de l'application vers le poste cible
-2. Éditer `company.json` avec les informations de la nouvelle entreprise
-3. Remplacer `data/Logo.jpg` par le logo de l'entreprise (même nom, ou mettre à jour `logo` dans le JSON)
-4. Lancer l'application — toute l'interface (titres, splash, PDF, aide) utilise automatiquement le nouveau nom
-
 > **Note :** si `company.json` est absent ou corrompu, l'application démarre avec les valeurs MLTVA par défaut.
 
 ### Version de l'application
 
 La version courante est visible :
-- Dans le titre de la fenêtre principale : `NomEntreprise — v2.0.0`
+- Dans le titre de la fenêtre principale : `MLTVA — v2.2.0`
 - Sur le splash screen au démarrage
 - Dans le menu **Aide → À propos**
 
 Pour mettre à jour la version lors d'une nouvelle release, modifier `version.py` :
 ```python
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.2.0"
 ```

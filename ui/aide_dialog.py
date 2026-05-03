@@ -32,6 +32,7 @@ Toutes les dépenses et recettes affichées correspondent à cette période.</p>
   <li><b>Synthèse...</b> — synthèse comptable mensuelle et annuelle</li>
   <li><b>Restaurer une sauvegarde...</b> — restauration de la base de données</li>
   <li><b>Configuration email...</b> — paramètres IMAP pour l'import de factures</li>
+  <li><b>Entreprise...</b> — coordonnées de l'entreprise et logo</li>
 </ul>
 
 <h3>Menu Aide</h3>
@@ -56,6 +57,7 @@ Toutes les dépenses et recettes affichées correspondent à cette période.</p>
   <tr><td><b>Montant TVA</b></td><td>Calculé automatiquement (non modifiable)</td></tr>
   <tr><td><b>Commentaire</b></td><td>Texte libre (optionnel)</td></tr>
   <tr><td><b>Validation</b></td><td>Cocher si la dépense est payée/validée</td></tr>
+  <tr><td><b>2ème ligne (TVA différente)</b></td><td>Cocher pour saisir une deuxième ligne avec un taux distinct (voir ci-dessous)</td></tr>
 </table>
 <br>
 <ol start="3">
@@ -65,6 +67,17 @@ Toutes les dépenses et recettes affichées correspondent à cette période.</p>
 ⚠️ Si une dépense identique existe déjà (même fournisseur, même montant, même mois),
 une fenêtre de confirmation s'affiche pour éviter les doublons.
 </p>
+
+<h3>Facture avec deux taux de TVA</h3>
+<p>Cocher <b>2ème ligne (TVA différente)</b> pour afficher des champs supplémentaires :</p>
+<ul>
+  <li><b>TTC 2</b> — montant TTC de la deuxième ligne</li>
+  <li><b>TVA 2</b> — taux de la deuxième ligne</li>
+  <li><b>Montant TVA 2</b> — calculé automatiquement</li>
+  <li><b>Validation 2</b> — si cette ligne est validée/payée</li>
+  <li><b>Commentaire 2</b> — texte libre (optionnel)</li>
+</ul>
+<p>Deux enregistrements sont créés en base (même fournisseur/date, taux différents).</p>
 """,
 
     "Modifier / Supprimer une dépense": """
@@ -102,11 +115,16 @@ une fenêtre de confirmation s'affiche pour éviter les doublons.
   <tr><td><b>TVA</b></td><td>Taux applicable</td></tr>
   <tr><td><b>Montant TVA</b></td><td>Calculé automatiquement</td></tr>
   <tr><td><b>Commentaire</b></td><td>Texte libre (optionnel)</td></tr>
+  <tr><td><b>2ème ligne (TVA différente)</b></td><td>Cocher pour saisir une deuxième ligne avec un taux distinct</td></tr>
 </table>
 <br>
 <ol start="3">
   <li>Cliquer sur <b>Valider</b></li>
 </ol>
+<h3>Facture avec deux taux de TVA</h3>
+<p>Cocher <b>2ème ligne (TVA différente)</b> pour afficher des champs supplémentaires :
+Montant 2, TVA 2, Montant TVA 2 (auto-calculé), Commentaire 2.
+Deux enregistrements sont créés en base pour le même client/facture.</p>
 """,
 
     "Calculette TVA": """
@@ -225,6 +243,31 @@ les factures reçues en pièce jointe (PDF).</p>
 <h3>Quand utiliser ce mode</h3>
 <p style="background:#FFF3CD; padding:8px; border-radius:4px;">
 ✓ Recommandé pour peu de factures (1-3) ou quand vous avez des corrections manuelles importantes à effectuer.
+</p>
+""",
+
+    "Configuration entreprise": """
+<h2>Configuration de l'entreprise</h2>
+<p>Accessible via le menu <b>Config → Entreprise...</b></p>
+<p>Permet de renseigner les coordonnées de l'entreprise affichées dans les titres, le PDF et le dialogue "À propos".</p>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; width:100%;">
+  <tr style="background:#2C5F8A; color:white;"><th>Champ</th><th>Description</th></tr>
+  <tr><td><b>Nom</b></td><td>Nom court affiché dans l'UI</td></tr>
+  <tr><td><b>Dénomination légale</b></td><td>Raison sociale complète</td></tr>
+  <tr><td><b>Adresse</b></td><td>Rue</td></tr>
+  <tr><td><b>Code postal / Ville</b></td><td>Code postal et ville</td></tr>
+  <tr><td><b>Téléphone</b></td><td>Numéro de téléphone</td></tr>
+  <tr><td><b>Email</b></td><td>Adresse email de l'entreprise</td></tr>
+  <tr><td><b>SIRET</b></td><td>Numéro SIRET (14 chiffres)</td></tr>
+  <tr><td><b>TVA intracommunautaire</b></td><td>Numéro TVA intra (FR...)</td></tr>
+  <tr><td><b>Logo</b></td><td>Cliquer sur <b>Parcourir…</b> pour choisir un fichier image (JPG, PNG)</td></tr>
+</table>
+<br>
+<p>Cliquer sur <b>Enregistrer</b> — les modifications sont appliquées immédiatement
+(logo et titre de fenêtre rechargés sans redémarrage).</p>
+<p style="background:#D5F4E6; padding:8px; border-radius:4px;">
+✓ Les données sont sauvegardées dans <b>company.json</b> à la racine de l'application.
 </p>
 """,
 

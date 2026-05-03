@@ -1,14 +1,14 @@
 {
   "name": "MLTVA",
-  "legal": "MLTVA SARL",
+  "legal": "Menuiserie Letellier",
+  "address": "6 Rte de la Flamme Olympique",
+  "postal_code": "76110",
+  "city": "Tocqueville-les-Murs",
+  "phone": "02 35 29 44 34",
+  "email": "menuiserie.letellier@gmail.com",
+  "siret": "53038715800021",
+  "tva_intra": "FR64530387158",
   "logo": "data/Logo.jpg",
   "db_name": "mlbdd.db",
-  "backup_dir": "data/backups",
-  "address": "1 rue de la Paix",
-  "postal_code": "75001",
-  "city": "Paris",
-  "phone": "01 23 45 67 89",
-  "email": "contact@mltva.fr",
-  "siret": "000 000 000 00000",
-  "tva_intra": "FR00 000000000"
+  "backup_dir": "data/backups"
 }
