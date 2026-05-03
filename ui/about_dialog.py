@@ -12,7 +12,7 @@ class AboutDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f"À propos — {COMPANY['name']}")
-        self.setFixedSize(380, 260)
+        self.setFixedSize(380, 320)
         self.setModal(True)
 
         layout = QVBoxLayout(self)
@@ -47,6 +47,28 @@ class AboutDialog(QDialog):
         legal_label.setAlignment(Qt.AlignCenter)
         legal_label.setStyleSheet("color: #555; font-size: 9pt;")
         layout.addWidget(legal_label)
+
+        # Coordonnées entreprise
+        coord_lines = []
+        addr = COMPANY.get("address", "")
+        city_line = " ".join(filter(None, [COMPANY.get("postal_code", ""), COMPANY.get("city", "")]))
+        if addr:
+            coord_lines.append(addr)
+        if city_line:
+            coord_lines.append(city_line)
+        if COMPANY.get("phone"):
+            coord_lines.append(f"Tél : {COMPANY['phone']}")
+        if COMPANY.get("email"):
+            coord_lines.append(f"Email : {COMPANY['email']}")
+        if COMPANY.get("siret"):
+            coord_lines.append(f"SIRET : {COMPANY['siret']}")
+        if COMPANY.get("tva_intra"):
+            coord_lines.append(f"TVA intra : {COMPANY['tva_intra']}")
+        if coord_lines:
+            coord_label = QLabel("\n".join(coord_lines))
+            coord_label.setAlignment(Qt.AlignCenter)
+            coord_label.setStyleSheet("color: #7F8C8D; font-size: 8pt;")
+            layout.addWidget(coord_label)
 
         layout.addStretch()
 

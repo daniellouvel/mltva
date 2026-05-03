@@ -21,6 +21,13 @@ _DEFAULTS = {
     "logo": "data/Logo.jpg",
     "db_name": "mlbdd.db",
     "backup_dir": "data/backups",
+    "address": "",
+    "postal_code": "",
+    "city": "",
+    "phone": "",
+    "email": "",
+    "siret": "",
+    "tva_intra": "",
 }
 
 

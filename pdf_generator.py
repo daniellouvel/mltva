@@ -148,21 +148,45 @@ class PDFGenerator:
             # En-tête avec logo et titre
             logo_path = get_logo_path()
             company_name = COMPANY["name"]
+
+            # Bloc coordonnées entreprise
+            coord_lines = [COMPANY.get("legal") or company_name]
+            addr = COMPANY.get("address", "")
+            city_line = " ".join(filter(None, [COMPANY.get("postal_code", ""), COMPANY.get("city", "")]))
+            if addr:
+                coord_lines.append(addr)
+            if city_line:
+                coord_lines.append(city_line)
+            if COMPANY.get("phone"):
+                coord_lines.append(f"Tél : {COMPANY['phone']}")
+            if COMPANY.get("email"):
+                coord_lines.append(f"Email : {COMPANY['email']}")
+            if COMPANY.get("siret"):
+                coord_lines.append(f"SIRET : {COMPANY['siret']}")
+            if COMPANY.get("tva_intra"):
+                coord_lines.append(f"TVA : {COMPANY['tva_intra']}")
+            coord_text = "<br/>".join(coord_lines)
+
+            title_text = f"{company_name}<br/>Document de Données Fiscales<br/>Période : {nom_mois} {annee}"
+
             if os.path.exists(logo_path):
-                # Créer un tableau pour l'en-tête
                 header_data = [
                     [Image(logo_path, width=1.5*inch, height=1.5*inch),
-                     Paragraph(f"{company_name}<br/>Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style)]
+                     Paragraph(title_text, title_style),
+                     Paragraph(coord_text, ParagraphStyle("coord", fontSize=8, leading=12, alignment=2))]
                 ]
-                header_table = Table(header_data, colWidths=[2*inch, 4*inch])
+                header_table = Table(header_data, colWidths=[1.8*inch, 3.5*inch, 2.2*inch])
                 header_table.setStyle(TableStyle([
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                    ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+                    ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
                 ]))
                 elements.append(header_table)
             else:
-                elements.append(Paragraph(f"{company_name}<br/>Document de Données Fiscales<br/>Période : {nom_mois} {annee}", title_style))
+                elements.append(Paragraph(title_text, title_style))
+                elements.append(Paragraph(coord_text, ParagraphStyle("coord", fontSize=8, leading=12)))
             
             elements.append(Spacer(1, 20))
 

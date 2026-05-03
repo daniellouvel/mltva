@@ -3,5 +3,12 @@
   "legal": "MLTVA SARL",
   "logo": "data/Logo.jpg",
   "db_name": "mlbdd.db",
-  "backup_dir": "data/backups"
+  "backup_dir": "data/backups",
+  "address": "1 rue de la Paix",
+  "postal_code": "75001",
+  "city": "Paris",
+  "phone": "01 23 45 67 89",
+  "email": "contact@mltva.fr",
+  "siret": "000 000 000 00000",
+  "tva_intra": "FR00 000000000"
 }
