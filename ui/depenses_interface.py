@@ -54,7 +54,7 @@ class GestionDepenses(GestionBase):
         self.selected_row_id = None
         self.periode_manager = PeriodeManager()
         self.mois, self.annee = self.periode_manager.get_periode()
-        self.db_manager = DatabaseManager("data/mlbdd.db")
+        self.db_manager = DatabaseManager()
 
         self._setup_ui()
         self.load_periode()

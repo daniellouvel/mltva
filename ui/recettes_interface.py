@@ -23,7 +23,7 @@ class GestionRecettes(GestionBase):
 
         self.periode_manager = PeriodeManager()
         self.mois, self.annee = self.periode_manager.get_periode()
-        self.db_manager = DatabaseManager("data/mlbdd.db")
+        self.db_manager = DatabaseManager()
         self.selected_row_id = None
 
         self.configure_table()

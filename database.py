@@ -1,141 +1,190 @@
 import sqlite3
+import logging
+from contextlib import contextmanager
 from sqlite3 import Error
 from constants import DB_CONFIG, ERROR_MESSAGES
 
+logger = logging.getLogger(__name__)
+
+
 class DatabaseManager:
+    """
+    Singleton avec une seule connexion SQLite vers le chemin defini dans
+    constants.DB_PATH. Les anciennes signatures DatabaseManager("...") restent
+    acceptees pour compatibilite mais l argument est ignore : il y a un seul
+    chemin pour toute l application.
+    """
     _instance = None
-    _connection = None
-    _cursor = None
+    _initialized = False
 
     def __new__(cls, db_file=None):
         if cls._instance is None:
-            cls._instance = super(DatabaseManager, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, db_file=None):
-        """Initialise la connexion à la base de données."""
-        if db_file is None:
-            db_file = DB_CONFIG["DEFAULT_PATH"]
-        self.db_file = db_file
+        if DatabaseManager._initialized:
+            return
+        self.db_file = DB_CONFIG["DEFAULT_PATH"]
         self._conn = None
         self._cursor = None
+        DatabaseManager._initialized = True
+
+    # ── Connexion ─────────────────────────────────────────────────────────────
 
     @property
     def conn(self):
-        """Propriété qui gère le Lazy Loading de la connexion."""
         if self._conn is None:
-            self._conn = self.create_connection()
+            self._conn = self._create_connection()
         return self._conn
 
     @property
     def cursor(self):
-        """Propriété qui gère le Lazy Loading du curseur."""
         if self._cursor is None:
             self._cursor = self.conn.cursor()
         return self._cursor
 
-    def create_connection(self):
-        """Crée une connexion à la base de données SQLite."""
+    def _create_connection(self):
         try:
             conn = sqlite3.connect(self.db_file)
             conn.row_factory = sqlite3.Row
-            # Optimisation des performances
             conn.execute("PRAGMA synchronous = NORMAL")
             conn.execute("PRAGMA journal_mode = WAL")
-            conn.execute("PRAGMA cache_size = -2000")  # 2MB de cache
-            print(ERROR_MESSAGES["DB_CONNECTION"])
+            conn.execute("PRAGMA cache_size = -2000")
+            conn.execute("PRAGMA foreign_keys = ON")
+            logger.info(ERROR_MESSAGES["DB_CONNECTION"])
             return conn
         except Error as e:
-            print(ERROR_MESSAGES["DB_CONNECTION_ERROR"].format(e))
-            return None
+            logger.error(ERROR_MESSAGES["DB_CONNECTION_ERROR"].format(e))
+            raise
+
+    # Compat : alias historique (utilise dans certaines vues)
+    def create_connection(self):
+        return self._create_connection()
 
     def close_connection(self):
-        """Ferme la connexion à la base de données."""
         if self._cursor is not None:
-            self._cursor.close()
+            try:
+                self._cursor.close()
+            except Error:
+                pass
             self._cursor = None
         if self._conn is not None:
-            self._conn.close()
+            try:
+                self._conn.close()
+            except Error:
+                pass
             self._conn = None
 
-    def load_periode(self):
-        """Charge les valeurs de la table 'periode' pour l'id = 1."""
-        query = "SELECT mois, annee FROM periode WHERE id = 1"
+    def __del__(self):
         try:
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
-            if result:
-                return str(result['mois']), str(result['annee'])
-            else:
-                self.save_periode(DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"])
-                return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
-        except Error as e:
-            print(ERROR_MESSAGES["DATABASE_ERROR"])
-            return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
+            self.close_connection()
+        except Exception:
+            pass
 
-    def save_periode(self, mois, annee):
-        """Sauvegarde les valeurs de mois et année dans la table 'periode'."""
-        query = """
-        INSERT OR REPLACE INTO periode (id, mois, annee)
-        VALUES (?, ?, ?)
+    # ── Transactions atomiques ────────────────────────────────────────────────
+
+    @contextmanager
+    def transaction(self):
         """
-        return self.execute_query(query, (1, mois, annee))
+        Contexte transactionnel : commit si tout passe, rollback en cas
+        d exception. Permet d enchainer plusieurs ecritures atomiquement.
+
+            with db.transaction() as cur:
+                cur.execute(q1, p1)
+                cur.execute(q2, p2)
+        """
+        cur = self.conn.cursor()
+        try:
+            yield cur
+            self.conn.commit()
+        except Error:
+            self.conn.rollback()
+            raise
+        finally:
+            cur.close()
+
+    # ── Requetes generiques ───────────────────────────────────────────────────
 
     def fetch_all(self, query, params=None):
-        """Exécute une requête SELECT et retourne toutes les lignes."""
         try:
-            cursor = self.conn.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            return cursor.fetchall()
+            cur = self.conn.cursor()
+            cur.execute(query, params or ())
+            return cur.fetchall()
         except Error as e:
-            print(ERROR_MESSAGES["DATABASE_ERROR"])
+            logger.error("fetch_all failed: %s", e)
             return []
 
     def fetch_one(self, query, params=None):
-        """Exécute une requête SELECT et retourne une seule ligne."""
         try:
-            cursor = self.conn.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            return cursor.fetchone()  # Renvoie une seule ligne
+            cur = self.conn.cursor()
+            cur.execute(query, params or ())
+            return cur.fetchone()
         except Error as e:
-            print(ERROR_MESSAGES["DATABASE_ERROR"])
-            return None  # Retourne None si une erreur se produit
+            logger.error("fetch_one failed: %s", e)
+            return None
 
     def execute_query(self, query, params=None):
-        """Exécute une requête SQL (INSERT, UPDATE, DELETE)."""
         try:
-            cursor = self.conn.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
+            cur = self.conn.cursor()
+            cur.execute(query, params or ())
             self.conn.commit()
             return True
         except Error as e:
-            print(ERROR_MESSAGES["DATABASE_ERROR"])
+            logger.error("execute_query failed: %s", e)
+            try:
+                self.conn.rollback()
+            except Error:
+                pass
             return False
 
-    def __del__(self):
-        """Destructeur qui ferme la connexion à la base de données."""
-        self.close_connection()
+    # ── Periode ───────────────────────────────────────────────────────────────
 
-    # Méthodes pour gérer les dépenses
+    def load_periode(self):
+        query = "SELECT mois, annee FROM periode WHERE id = 1"
+        try:
+            row = self.fetch_one(query)
+            if row:
+                return str(row["mois"]), str(row["annee"])
+            self.save_periode(DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"])
+            return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
+        except Error:
+            return DB_CONFIG["DEFAULT_MONTH"], DB_CONFIG["DEFAULT_YEAR"]
+
+    def save_periode(self, mois, annee):
+        query = "INSERT OR REPLACE INTO periode (id, mois, annee) VALUES (?, ?, ?)"
+        return self.execute_query(query, (1, mois, annee))
+
+    # ── Depenses ──────────────────────────────────────────────────────────────
+
     def insert_depense(self, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire):
-        """Insère une nouvelle dépense dans la table 'depenses'."""
         query = """
         INSERT INTO depenses (date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         return self.execute_query(query, (date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire))
 
+    def insert_depense_with_fournisseur(self, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire):
+        """
+        Atomique : cree le fournisseur s il n existe pas + insere la depense.
+        Retourne True si tout passe, False sinon (rollback complet).
+        """
+        try:
+            with self.transaction() as cur:
+                cur.execute("SELECT 1 FROM contacts WHERE nom = ?", (fournisseur,))
+                if not cur.fetchone():
+                    cur.execute("INSERT INTO contacts (nom) VALUES (?)", (fournisseur,))
+                cur.execute(
+                    "INSERT INTO depenses (date, fournisseur, ttc, tva_id, "
+                    "montant_tva, validation, commentaire) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire)
+                )
+            return True
+        except Error as e:
+            logger.error("insert_depense_with_fournisseur failed: %s", e)
+            return False
+
     def update_depense(self, id, date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire):
-        """Met à jour une dépense existante dans la table 'depenses'."""
         query = """
         UPDATE depenses
         SET date=?, fournisseur=?, ttc=?, tva_id=?, montant_tva=?, validation=?, commentaire=?
@@ -144,18 +193,24 @@ class DatabaseManager:
         return self.execute_query(query, (date, fournisseur, ttc, tva_id, montant_tva, validation, commentaire, id))
 
     def delete_depense(self, id):
-        """Supprime une dépense existante de la table 'depenses'."""
-        query = "DELETE FROM depenses WHERE id=?"
-        return self.execute_query(query, (id,))
+        return self.execute_query("DELETE FROM depenses WHERE id=?", (id,))
 
     def update_validation_status(self, item_id, status):
-        """Met à jour l'état de validation d'une dépense."""
-        query = "UPDATE depenses SET validation = ? WHERE id = ?"
-        return self.execute_query(query, (status, item_id))  # Utilisez des paramètres pour éviter les injections SQL
+        return self.execute_query("UPDATE depenses SET validation = ? WHERE id = ?", (status, item_id))
 
-    # Méthodes pour gérer les recettes
+    def find_depense_doublons(self, ttc, fournisseur, mois, annee):
+        """Doublons sur meme TTC + fournisseur + meme mois/annee."""
+        query = """
+            SELECT id, date, fournisseur, ttc FROM depenses
+            WHERE ttc = ? AND fournisseur = ?
+              AND strftime('%m', date) = ?
+              AND strftime('%Y', date) = ?
+        """
+        return self.fetch_all(query, (ttc, fournisseur, f"{int(mois):02d}", str(annee)))
+
+    # ── Recettes ──────────────────────────────────────────────────────────────
+
     def insert_recette(self, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
-        """Insère une nouvelle recette dans la table 'recettes'."""
         query = """
         INSERT INTO recettes (date, client, paiement, numero_facture, montant, tva, montant_tva, commentaire)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -163,7 +218,6 @@ class DatabaseManager:
         return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire))
 
     def update_recette(self, recette_id, date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire):
-        """Met à jour une recette existante dans la table 'recettes'."""
         query = """
         UPDATE recettes
         SET date=?, client=?, paiement=?, numero_facture=?, montant=?, tva=?, montant_tva=?, commentaire=?
@@ -172,12 +226,11 @@ class DatabaseManager:
         return self.execute_query(query, (date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire, recette_id))
 
     def delete_recette(self, recette_id):
-        """Supprime une recette existante de la table 'recettes'."""
-        query = "DELETE FROM recettes WHERE id=?"
-        return self.execute_query(query, (recette_id,))
+        return self.execute_query("DELETE FROM recettes WHERE id=?", (recette_id,))
+
+    # ── Contacts ──────────────────────────────────────────────────────────────
 
     def contact_exists(self, nom):
-        """Vérifie si un contact existe déjà dans la table 'contacts'."""
         query = "SELECT COUNT(*) FROM contacts WHERE nom = ?"
         result = self.fetch_all(query, (nom,))
         return bool(result and result[0][0] > 0)
@@ -189,27 +242,19 @@ class DatabaseManager:
         return self.contact_exists(nom)
 
     def insert_fournisseur(self, nom):
-        """Insère un nouveau fournisseur dans la table 'contacts'."""
-        query = "INSERT INTO contacts (nom) VALUES (?)"
-        return self.execute_query(query, (nom,))
+        return self.execute_query("INSERT INTO contacts (nom) VALUES (?)", (nom,))
 
     def insert_client(self, nom, prenom=None, telephone=None, email=None):
-        """Insère un nouveau client dans la table 'contacts'."""
         query = "INSERT INTO contacts (nom, prenom, telephone, email) VALUES (?, ?, ?, ?)"
         return self.execute_query(query, (nom, prenom, telephone, email))
 
     def get_contact_id(self, nom):
-        """Récupère l'ID d'un contact basé sur son nom."""
-        query = "SELECT id FROM contacts WHERE nom = ?"
-        result = self.fetch_all(query, (nom,))
+        result = self.fetch_all("SELECT id FROM contacts WHERE nom = ?", (nom,))
         return result[0][0] if result else None
 
     def update_contact(self, contact_id, nom, prenom, telephone, email):
-        """Met à jour un contact dans la table 'contacts'."""
         query = "UPDATE contacts SET nom = ?, prenom = ?, telephone = ?, email = ? WHERE id = ?"
         return self.execute_query(query, (nom, prenom, telephone, email, contact_id))
 
     def delete_contact(self, contact_id):
-        """Supprime un contact de la table 'contacts'."""
-        query = "DELETE FROM contacts WHERE id = ?"
-        return self.execute_query(query, (contact_id,))
+        return self.execute_query("DELETE FROM contacts WHERE id = ?", (contact_id,))

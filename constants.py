@@ -17,9 +17,16 @@ ERROR_MESSAGES = {
     "PERIODE_LOAD_ERROR": "Erreur lors du chargement de la période : {}"
 }
 
+import os as _os
+
+# Chemin DB unique : resolu absolu, base sur l'emplacement de constants.py
+# pour fonctionner depuis n'importe quel cwd (CLI, exe Nuitka, tests).
+_BASE_DIR = _os.path.dirname(_os.path.abspath(__file__))
+DB_PATH = _os.path.join(_BASE_DIR, "data", "mlbdd.db")
+
 # Configuration de la base de données
 DB_CONFIG = {
-    "DEFAULT_PATH": "data/mlbdd.db",
+    "DEFAULT_PATH": DB_PATH,
     "DEFAULT_MONTH": "Janvier",
     "DEFAULT_YEAR": "2023"
 }

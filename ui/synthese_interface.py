@@ -20,7 +20,7 @@ class SyntheseDialog(QDialog):
         self.setMinimumSize(680, 480)
         self.setModal(True)
 
-        self.db_manager = DatabaseManager("data/mlbdd.db")
+        self.db_manager = DatabaseManager()
         self.periode_manager = PeriodeManager()
         self.mois, self.annee = self.periode_manager.get_periode()
 

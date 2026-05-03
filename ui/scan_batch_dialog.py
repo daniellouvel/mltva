@@ -190,21 +190,6 @@ class ScanBatchDialog(QDialog):
             self.edit_montant.setText(result["montant"])
         self._recalc_tva()
 
-    def _check_duplicate(self, ttc, fournisseur, date_obj):
-        """Retourne les lignes existantes avec le même TTC + fournisseur sur le même mois."""
-        query = """
-            SELECT date, fournisseur, ttc FROM depenses
-            WHERE ttc = ? AND fournisseur = ?
-              AND strftime('%m', date) = ?
-              AND strftime('%Y', date) = ?
-        """
-        mois_str = f"{date_obj.month:02d}"
-        annee_str = str(date_obj.year)
-        try:
-            return self.db_manager.fetch_all(query, (ttc, fournisseur, mois_str, annee_str))
-        except Exception:
-            return []
-
     def _on_valider(self):
         date_text = self.edit_date.text().strip()
         fournisseur = self.combo_fournisseur.currentText().strip()
@@ -229,8 +214,10 @@ class ScanBatchDialog(QDialog):
             QMessageBox.warning(self, "Données invalides", str(e))
             return
 
-        # Vérification des doublons
-        doublons = self._check_duplicate(ttc, fournisseur, date_obj)
+        # Vérification des doublons (même TTC + fournisseur, même mois)
+        doublons = self.db_manager.find_depense_doublons(
+            ttc, fournisseur, date_obj.month, date_obj.year
+        )
         if doublons:
             mois_annee = date_obj.strftime("%m/%Y")
             rep = QMessageBox.question(
@@ -245,17 +232,8 @@ class ScanBatchDialog(QDialog):
             if rep != QMessageBox.Yes:
                 return
 
-        if not self.db_manager.fournisseur_exists(fournisseur):
-            rep = QMessageBox.question(
-                self, "Nouveau fournisseur",
-                f"Le fournisseur «{fournisseur}» n'existe pas.\n"
-                "Voulez-vous l'ajouter au répertoire ?",
-                QMessageBox.Yes | QMessageBox.No
-            )
-            if rep == QMessageBox.Yes:
-                self.db_manager.insert_fournisseur(fournisseur)
-
-        success = self.db_manager.insert_depense(
+        # Insertion atomique : fournisseur (si absent) + dépense en une seule transaction
+        success = self.db_manager.insert_depense_with_fournisseur(
             formatted_date, fournisseur, ttc, tva_rate, montant_tva, validation, commentaire
         )
         if not success:
