@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QMessageBox, QHeaderView
 )
 from PySide6.QtCore import Qt
-from utils.backup import backup_database, BACKUP_DIR, DB_SOURCE
+from utils.backup import backup_database
+from company_config import get_backup_dir, get_db_path
 
 
 class RestoreDialog(QDialog):
@@ -48,11 +49,12 @@ class RestoreDialog(QDialog):
         self._load_backups()
 
     def _load_backups(self):
-        if not os.path.exists(BACKUP_DIR):
+        backup_dir = get_backup_dir()
+        if not os.path.exists(backup_dir):
             return
 
         backups = []
-        for f in os.listdir(BACKUP_DIR):
+        for f in os.listdir(backup_dir):
             if not f.startswith("mlbdd_") or not f.endswith(".db"):
                 continue
             name = f[6:-3]  # strip "mlbdd_" and ".db"
@@ -96,7 +98,7 @@ class RestoreDialog(QDialog):
             return
 
         filename = self.table.item(row, 0).text()
-        source = os.path.join(BACKUP_DIR, filename)
+        source = os.path.join(get_backup_dir(), filename)
 
         reply = QMessageBox.question(
             self,
@@ -115,7 +117,7 @@ class RestoreDialog(QDialog):
             backup_database()
 
             # Restauration
-            shutil.copy2(source, DB_SOURCE)
+            shutil.copy2(source, get_db_path())
 
             QMessageBox.information(
                 self,
