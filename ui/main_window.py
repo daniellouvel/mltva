@@ -133,11 +133,10 @@ class MainWindow(QMainWindow):
         try:
             mois, annee = self.db_manager.load_periode()
             mois_numerique = convert_month_to_number(mois)
-            options = QFileDialog.Options()
             pdf_filename, _ = QFileDialog.getSaveFileName(
                 self, "Sauvegarder le PDF",
                 f"donnees_fiscales_{mois}_{annee}.pdf",
-                "PDF Files (*.pdf);;All Files (*)", options=options
+                "PDF Files (*.pdf);;All Files (*)"
             )
             if pdf_filename:
                 self.pdf_generator.generate_ddf(mois_numerique, annee, pdf_filename)
