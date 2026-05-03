@@ -45,9 +45,18 @@ def _load() -> dict:
 COMPANY: dict = _load()
 
 
+def reload() -> None:
+    """Recharge company.json et met à jour COMPANY en place (sans réimporter)."""
+    COMPANY.clear()
+    COMPANY.update(_load())
+
+
 def get_logo_path() -> str:
-    """Chemin absolu vers le logo de l'entreprise."""
-    return os.path.join(_BASE_DIR, COMPANY["logo"])
+    """Chemin absolu vers le logo (gère les chemins absolus et relatifs)."""
+    logo = COMPANY["logo"]
+    if os.path.isabs(logo):
+        return logo
+    return os.path.join(_BASE_DIR, logo)
 
 
 def get_db_path() -> str:

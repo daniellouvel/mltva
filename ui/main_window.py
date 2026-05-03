@@ -17,6 +17,7 @@ from ui.synthese_interface import SyntheseDialog
 from ui.aide_dialog import AideDialog
 from ui.about_dialog import AboutDialog
 from ui.email_config_dialog import EmailConfigDialog
+from ui.company_config_dialog import CompanyConfigDialog
 from company_config import COMPANY, get_logo_path
 from version import APP_VERSION
 
@@ -52,6 +53,10 @@ class MainWindow(QMainWindow):
         self.action_email_config.triggered.connect(self.open_email_config)
         self.ui.menuConfig.addSeparator()
         self.ui.menuConfig.addAction(self.action_email_config)
+
+        self.action_company_config = QAction("Entreprise...", self)
+        self.action_company_config.triggered.connect(self.open_company_config)
+        self.ui.menuConfig.addAction(self.action_company_config)
 
         action_aide = QAction("Guide d'utilisation", self)
         action_aide.setShortcut("F1")
@@ -183,3 +188,10 @@ class MainWindow(QMainWindow):
     def open_email_config(self):
         dialog = EmailConfigDialog(self)
         dialog.exec()
+
+    def open_company_config(self):
+        dialog = CompanyConfigDialog(self)
+        if dialog.exec():
+            self.setWindowTitle(f"{COMPANY['name']} — v{APP_VERSION}")
+            self._logo_loaded = False
+            self.load_logo()
