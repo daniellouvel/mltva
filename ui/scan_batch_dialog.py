@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt
 from constants import UI_CONFIG
 from util import calculate_tva, configure_fournisseur_combobox
 from scan_facture import scan_facture
+from ui.async_worker import run_with_progress
 
 
 class ScanBatchDialog(QDialog):
@@ -144,20 +145,28 @@ class ScanBatchDialog(QDialog):
         self.filename_label.setText(os.path.basename(file_path))
         self._clear_form()
 
-        try:
-            result = scan_facture(file_path)
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Tesseract manquant", str(e))
-            self._show_summary()
-            return
-        except Exception as e:
-            self.errors.append(f"{os.path.basename(file_path)} : {e}")
+        # OCR dans un QThread pour ne pas geler l UI
+        worker_res = run_with_progress(
+            parent=self,
+            title="Scan OCR",
+            message=f"Analyse de {os.path.basename(file_path)} ...",
+            target=scan_facture,
+            args=(file_path,),
+        )
+        if not worker_res.success:
+            err = worker_res.error
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.critical(self, "Tesseract manquant", str(err))
+                self._show_summary()
+                return
+            self.errors.append(f"{os.path.basename(file_path)} : {err}")
             QMessageBox.warning(
                 self, "Erreur scan",
-                f"Impossible de scanner :\n{os.path.basename(file_path)}\n\n{e}\n\n"
+                f"Impossible de scanner :\n{os.path.basename(file_path)}\n\n{err}\n\n"
                 "Saisissez manuellement ou cliquez sur Passer."
             )
             return
+        result = worker_res.value
 
         # Ajustement de la date si hors période
         date_a_utiliser = result.get("date", "")

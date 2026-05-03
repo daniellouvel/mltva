@@ -19,6 +19,7 @@ from scan_facture import scan_facture
 from scan_email import load_email_config, fetch_invoice_pdfs
 from ui.scan_batch_dialog import ScanBatchDialog
 from ui.email_config_dialog import EmailConfigDialog
+from ui.async_worker import run_with_progress
 
 TABLE_COLUMNS = {
     "REPERE": 0,
@@ -381,9 +382,22 @@ class GestionDepenses(GestionBase):
 
     def _scan_single(self, file_path):
         """Scan d'une facture unique : pré-remplit le formulaire principal."""
+        worker_res = run_with_progress(
+            parent=self,
+            title="Scan OCR",
+            message=f"Analyse de la facture ...",
+            target=scan_facture,
+            args=(file_path,),
+        )
+        if not worker_res.success:
+            err = worker_res.error
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.critical(self, "Tesseract manquant", str(err))
+            else:
+                handle_exception(err, "Erreur lors du scan de la facture")
+            return
+        result = worker_res.value
         try:
-            result = scan_facture(file_path)
-
             champs_trouves = [k for k, v in result.items() if v and k != "texte_brut"]
             if not champs_trouves:
                 QMessageBox.warning(
@@ -462,21 +476,21 @@ class GestionDepenses(GestionBase):
                 return
             cfg = load_email_config()
 
-        try:
-            QMessageBox.information(
-                self, "Connexion en cours",
-                f"Récupération des emails de {cfg['email']}\n"
-                f"(derniers {cfg['jours']} jours) …\n\nCliquez OK pour continuer."
-            )
-            pdf_paths, nb_emails = fetch_invoice_pdfs(
-                cfg["server"], cfg["port"],
-                cfg["email"], cfg["password"],
-                cfg.get("dossier", "INBOX"),
-                cfg.get("jours", 30)
-            )
-        except Exception as e:
-            QMessageBox.critical(self, "Erreur email", f"Impossible de récupérer les emails :\n\n{e}")
+        # Connexion IMAP + telechargement dans un QThread (UI reactive)
+        result = run_with_progress(
+            parent=self,
+            title="Connexion IMAP",
+            message=f"Recuperation des emails de {cfg['email']}\n"
+                    f"(derniers {cfg['jours']} jours) ...",
+            target=fetch_invoice_pdfs,
+            args=(cfg["server"], cfg["port"], cfg["email"], cfg["password"],
+                  cfg.get("dossier", "INBOX"), cfg.get("jours", 30)),
+        )
+        if not result.success:
+            QMessageBox.critical(self, "Erreur email",
+                                 f"Impossible de récupérer les emails :\n\n{result.error}")
             return
+        pdf_paths, nb_emails = result.value
 
         if not pdf_paths:
             QMessageBox.information(
