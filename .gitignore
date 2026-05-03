@@ -11,6 +11,12 @@ env/
 
 # Base de données SQLite
 *.db
+*.db-shm
+*.db-wal
+
+# Configuration sensible (credentials email IMAP, etc.)
+data/email_config.json
+*.local.json
 
 # IDE (Visual Studio Code, PyCharm, etc.)
 .vscode/
