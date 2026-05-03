@@ -1,2 +1,6 @@
 PySide6
 reportlab
+pytesseract
+PyMuPDF
+Pillow
+keyring

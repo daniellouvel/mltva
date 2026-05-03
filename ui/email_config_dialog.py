@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QGridLayout, QLabel, QLineEdit,
     QSpinBox, QPushButton, QHBoxLayout, QMessageBox, QGroupBox
 )
-from scan_email import load_email_config, save_email_config, test_connection
+from scan_email import load_email_config, save_email_config, test_connection, KEYRING_AVAILABLE
 
 
 class EmailConfigDialog(QDialog):
@@ -17,10 +17,14 @@ class EmailConfigDialog(QDialog):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
+        stockage = ("Le mot de passe est stocké dans le Windows Credential Manager."
+                    if KEYRING_AVAILABLE
+                    else "⚠️ keyring non installé : le mot de passe ne sera PAS conservé.")
         info = QLabel(
             "Pour Gmail : activez l'accès IMAP dans les paramètres Gmail,\n"
             "puis créez un «Mot de passe d'application» dans votre compte Google\n"
-            "(Sécurité → Validation en 2 étapes → Mots de passe des applications)."
+            "(Sécurité → Validation en 2 étapes → Mots de passe des applications).\n\n"
+            f"{stockage}"
         )
         info.setStyleSheet(
             "background:#FEF9E7; border:1px solid #F0B27A; "

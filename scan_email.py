@@ -5,26 +5,70 @@ import json
 import tempfile
 from email.header import decode_header
 
+try:
+    import keyring
+    KEYRING_AVAILABLE = True
+except ImportError:
+    KEYRING_AVAILABLE = False
+
 EMAIL_CONFIG_PATH = "data/email_config.json"
+KEYRING_SERVICE = "mltva-imap"
+
+
+def _get_password(email_addr):
+    """Récupère le mot de passe depuis Windows Credential Manager."""
+    if not KEYRING_AVAILABLE or not email_addr:
+        return ""
+    try:
+        return keyring.get_password(KEYRING_SERVICE, email_addr) or ""
+    except Exception:
+        return ""
+
+
+def _set_password(email_addr, password):
+    """Stocke le mot de passe dans Windows Credential Manager."""
+    if not KEYRING_AVAILABLE or not email_addr:
+        return False
+    try:
+        if password:
+            keyring.set_password(KEYRING_SERVICE, email_addr, password)
+        else:
+            try:
+                keyring.delete_password(KEYRING_SERVICE, email_addr)
+            except Exception:
+                pass
+        return True
+    except Exception:
+        return False
 
 
 def load_email_config():
-    if os.path.exists(EMAIL_CONFIG_PATH):
-        with open(EMAIL_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {
+    """Charge la config (sans le password) depuis JSON et le password depuis keyring."""
+    cfg = {
         "server": "imap.gmail.com",
         "port": 993,
         "email": "",
-        "password": "",
         "dossier": "INBOX",
         "jours": 30,
     }
+    if os.path.exists(EMAIL_CONFIG_PATH):
+        try:
+            with open(EMAIL_CONFIG_PATH, "r", encoding="utf-8") as f:
+                cfg.update(json.load(f))
+        except (json.JSONDecodeError, OSError):
+            pass
+    cfg.pop("password", None)
+    cfg["password"] = _get_password(cfg.get("email", ""))
+    return cfg
 
 
 def save_email_config(config):
+    """Sauvegarde la config (sans le password) en JSON, password dans keyring."""
+    os.makedirs(os.path.dirname(EMAIL_CONFIG_PATH), exist_ok=True)
+    cfg = {k: v for k, v in config.items() if k != "password"}
     with open(EMAIL_CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
+        json.dump(cfg, f, indent=2, ensure_ascii=False)
+    _set_password(config.get("email", ""), config.get("password", ""))
 
 
 def test_connection(server, port, email_addr, password):
