@@ -114,6 +114,67 @@ une fenêtre de confirmation s'affiche pour éviter les doublons.
 </table>
 """,
 
+    "Scan factures — mode tableau": """
+<h2>Scan factures — mode tableau (global)</h2>
+<p>Le mode tableau permet de scanner <b>plusieurs factures à la fois</b> et de les valider en lot.</p>
+
+<h3>Procédure</h3>
+<ol>
+  <li>Cliquer sur <b>Scanner facture</b> dans la fenêtre Dépenses</li>
+  <li>Sélectionner une ou plusieurs factures PDF</li>
+  <li>Choisir <b>Tableau</b> dans la boîte de dialogue</li>
+  <li>Les factures sont scannées en parallèle (barre de progression)</li>
+  <li>Modifier les cellules si nécessaire</li>
+  <li>Cocher les factures à enregistrer</li>
+  <li>Cliquer sur <b>Enregistrer les lignes cochées</b></li>
+</ol>
+
+<h3>Fonctionnalités</h3>
+<ul>
+  <li>Tableau éditable : modifiez Date, Fournisseur, TTC, Taux TVA, Validation, Commentaire</li>
+  <li>Le <b>Montant TVA</b> se recalcule automatiquement quand vous modifiez le TTC ou le taux</li>
+  <li>Les factures en erreur de scan s'affichent en <span style="background:#FADBD8; padding:2px;">rouge</span> et seront ignorées</li>
+  <li>Détection des doublons lors de l'enregistrement (même fournisseur + montant + mois)</li>
+  <li>Résumé final indiquant les factures enregistrées, ignorées, en doublon</li>
+</ul>
+
+<h3>Quand utiliser ce mode</h3>
+<p style="background:#D5F4E6; padding:8px; border-radius:4px;">
+✓ Recommandé pour de nombreuses factures (10+) ou quand vous avez peu de corrections manuelles à faire.
+</p>
+""",
+
+    "Scan factures — mode séquentiel": """
+<h2>Scan factures — mode séquentiel (pas à pas)</h2>
+<p>Le mode séquentiel traite <b>une facture à la fois</b> avec possibilité de correction interactive.</p>
+
+<h3>Procédure</h3>
+<ol>
+  <li>Cliquer sur <b>Scanner facture</b> dans la fenêtre Dépenses</li>
+  <li>Sélectionner une ou plusieurs factures PDF</li>
+  <li>Choisir <b>Séquentiel</b> dans la boîte de dialogue</li>
+  <li>Pour chaque facture :
+    <ul>
+      <li>L'OCR affiche les données détectées</li>
+      <li>Modifier les champs si nécessaire</li>
+      <li>Cliquer <b>Valider</b> pour enregistrer, <b>Passer</b> pour ignorer, ou <b>Arrêter</b> pour terminer</li>
+    </ul>
+  </li>
+  <li>Un résumé final affiche le nombre de factures enregistrées</li>
+</ol>
+
+<h3>Dialogues spéciaux</h3>
+<ul>
+  <li><b>Période différente</b> — si la date de la facture ne correspond pas au mois actif, l'application propose d'ajuster automatiquement</li>
+  <li><b>Doublon détecté</b> — confirmation avant d'ajouter une dépense identique</li>
+</ul>
+
+<h3>Quand utiliser ce mode</h3>
+<p style="background:#FFF3CD; padding:8px; border-radius:4px;">
+✓ Recommandé pour peu de factures (1-3) ou quand vous avez des corrections manuelles importantes à effectuer.
+</p>
+""",
+
     "Contacts et Fournisseurs": """
 <h2>Contacts et Fournisseurs</h2>
 <p>Accessible via le menu <b>Config → Contacts</b>.</p>

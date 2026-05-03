@@ -5,12 +5,13 @@
 1. [Lancement de l'application](#1-lancement)
 2. [Fenêtre principale](#2-fenêtre-principale)
 3. [Gestion des Dépenses](#3-gestion-des-dépenses)
-4. [Gestion des Recettes](#4-gestion-des-recettes)
-5. [Calculette TVA](#5-calculette-tva)
-6. [Contacts et Fournisseurs](#6-contacts-et-fournisseurs)
-7. [Synthèse comptable](#7-synthèse-comptable)
-8. [Export PDF](#8-export-pdf)
-9. [Sauvegardes et Restauration](#9-sauvegardes-et-restauration)
+4. [Scan factures par lot](#4-scan-factures-par-lot)
+5. [Gestion des Recettes](#5-gestion-des-recettes)
+6. [Calculette TVA](#6-calculette-tva)
+7. [Contacts et Fournisseurs](#7-contacts-et-fournisseurs)
+8. [Synthèse comptable](#8-synthèse-comptable)
+9. [Export PDF](#9-export-pdf)
+10. [Sauvegardes et Restauration](#10-sauvegardes-et-restauration)
 
 ---
 
@@ -80,7 +81,56 @@ Si une dépense identique (même fournisseur, même montant, même mois) existe 
 
 ---
 
-## 4. Gestion des Recettes
+## 4. Scan factures par lot
+
+### Accès
+
+1. Dans la fenêtre **Dépenses**, cliquer sur le bouton `Scanner facture`
+2. Sélectionner une ou plusieurs factures PDF
+3. Choisir le mode de traitement
+
+### Mode Tableau (global)
+
+Le mode tableau scanne **toutes les factures simultanément** et affiche les résultats dans un tableau éditable :
+
+1. Un OCR rapide analyse tous les fichiers en parallèle (avec barre de progression)
+2. Les résultats s'affichent dans un tableau où vous pouvez :
+   - **Modifier les cellules** : Date, Fournisseur, TTC, Taux TVA, Montaire TVA (auto-recalculée), Validation, Commentaire
+   - **Cocher les lignes** à enregistrer (les cases à cocher permettent la sélection multiple)
+   - **Valider en lot** : cliquer sur `Enregistrer les lignes cochées`
+
+3. Les factures avec erreur de scan s'affichent en **rouge** et seront ignorées
+4. Un résumé final indique combien de factures ont été enregistrées, ignorées, ou en doublon
+
+**Avantage :** rapidité, aperçu global avant enregistrement, modification groupée facile.
+
+### Mode Séquentiel
+
+Le mode séquentiel traite **une facture à la fois** avec confirmation interactive :
+
+1. Chaque facture est scannée individuellement
+2. Un formulaire s'affiche avec les données détectées (modifiables)
+3. Vous validez, passez, ou stoppez le traitement
+4. Un résumé final affiche les résultats
+
+**Avantage :** contrôle précis, interaction facture par facture, idéal pour les corrections manuelles.
+
+### Choix du mode
+
+À chaque scan, un dialogue vous demande de choisir :
+- **Tableau** — traitement rapide et global (recommandé pour beaucoup de factures)
+- **Séquentiel** — traitement détaillé et pas à pas (recommandé pour peu de factures ou corrections manuelles)
+
+### Notes
+
+- Les dates hors période sont automatiquement ajustées à la période active (ex: `01/05/2026`)
+- La détection de TVA est automatique (20% par défaut)
+- Les doublons sont détectés lors de l'enregistrement (même fournisseur + montant + mois)
+- Vous pouvez toujours éditer manuellement les dépenses après enregistrement
+
+---
+
+## 5. Gestion des Recettes
 
 ### Saisir une recette
 
@@ -102,7 +152,7 @@ Même fonctionnement que pour les dépenses (cliquer sur la ligne, puis `Modifie
 
 ---
 
-## 5. Calculette TVA
+## 6. Calculette TVA
 
 La calculette est accessible dans les fenêtres Dépenses et Recettes via le bouton `Calculette TTC`.
 
@@ -118,7 +168,7 @@ Le champ `Montant` se remplit automatiquement avec le **montant TTC**, et le cha
 
 ---
 
-## 6. Contacts et Fournisseurs
+## 7. Contacts et Fournisseurs
 
 Accessible via le menu **Config → Contacts**.
 
@@ -132,7 +182,7 @@ Lors de la saisie d'une dépense ou recette, si le fournisseur/client n'existe p
 
 ---
 
-## 7. Synthèse comptable
+## 8. Synthèse comptable
 
 Accessible via le menu **Config → Synthèse**.
 
@@ -160,7 +210,7 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 8. Export PDF
+## 9. Export PDF
 
 1. Sélectionner la période (mois + année) dans la fenêtre principale
 2. Cliquer sur `Export PDF`
@@ -169,7 +219,7 @@ La dernière ligne affiche les **totaux annuels**.
 
 ---
 
-## 9. Sauvegardes et Restauration
+## 10. Sauvegardes et Restauration
 
 ### Sauvegardes automatiques
 

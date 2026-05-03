@@ -55,11 +55,15 @@ mltva/
 │   ├── style.qss                  # Thème visuel (Qt Style Sheets)
 │   ├── main_window.py             # MainWindow (fenêtre principale)
 │   ├── base_gestion.py            # GestionBase (classe mère commune)
-│   ├── depenses_interface.py      # GestionDepenses
+│   ├── depenses_interface.py      # GestionDepenses (+ bouton scan)
 │   ├── recettes_interface.py      # GestionRecettes
 │   ├── contacts_interface.py      # ContactsManager
 │   ├── synthese_interface.py      # SyntheseDialog
 │   ├── restore_dialog.py          # RestoreDialog
+│   ├── aide_dialog.py             # AideDialog (fenêtre d'aide)
+│   ├── async_worker.py            # Helpers threading (run_with_progress)
+│   ├── scan_batch_dialog.py       # Mode séquentiel (facture par facture)
+│   ├── scan_batch_table_dialog.py # Mode tableau (toutes factures à la fois)
 │   ├── ui_main_window.py          # Généré Qt Designer — fenêtre principale
 │   ├── ui_gestion_depenses.py     # Layout dépenses (réécrit en pur Python)
 │   ├── ui_gestion_Recettes.py     # Layout recettes (réécrit en pur Python)
@@ -97,6 +101,8 @@ data/
 | `montant_tva` | REAL | Montant de la TVA |
 | `validation` | TEXT | `"Oui"` ou `"Non"` |
 | `commentaire` | TEXT | Texte libre |
+
+> **Note (v2.0) :** les insertions/updates sont maintenant effectuées dans une transaction atomique pour éviter les incohérences (voir `insert_depense_with_fournisseur`).
 
 ### Table `recettes`
 
@@ -176,6 +182,13 @@ db.contact_exists(nom)               # → bool (unifie fournisseur_exists + cli
 db.insert_fournisseur(nom)
 db.insert_client(nom, prenom, telephone, email)
 db.get_contact_id(nom)               # → int | None
+
+# Scan / Import batch (v2.0)
+db.insert_depense_with_fournisseur(date, fournisseur, ttc, tva_rate, montant_tva, validation, commentaire)
+# → insère le fournisseur (si absent) et la dépense en transaction atomique
+
+db.find_depense_doublons(ttc, fournisseur, mois, annee)
+# → retourne une liste de doublon détectés (même TTC + fournisseur + mois/année)
 ```
 
 **PRAGMA SQLite activés :**
@@ -229,6 +242,60 @@ Génère un document PDF avec ReportLab contenant :
 pdf = PDFGenerator(db_manager)
 pdf.generate_ddf(mois_numerique, annee, "chemin/fichier.pdf")
 ```
+
+### `ui/async_worker.py` — Threading helpers
+
+Exécute une fonction bloquante (OCR, IMAP, etc.) dans un `QThread` tout en affichant une barre de progression modale. Empêche le gel de l'UI.
+
+```python
+from ui.async_worker import run_with_progress, WorkerResult
+
+result = run_with_progress(
+    parent=self,
+    title="Scan OCR",
+    message="Analyse de 5 factures ...",
+    target=_scan_all,
+    args=(file_paths, selected_month, selected_year),
+    cancellable=False
+)
+
+if result.success:
+    print(result.value)  # Résultat de _scan_all
+else:
+    print(result.error)  # Exception levée
+```
+
+**`WorkerResult` :**
+- `success: bool` — True si l'exécution a réussi
+- `value: Any` — Résultat retourné par `target()`
+- `error: BaseException` — Exception levée (si success=False)
+
+### `ui/scan_batch_dialog.py` et `ui/scan_batch_table_dialog.py` — Scan batch
+
+Deux modes de scanning de factures PDF en lot :
+
+| Mode | Fichier | Description |
+|------|---------|-------------|
+| **Séquentiel** | `ScanBatchDialog` | Traite une facture à la fois, formulaire interactif avec correction manuelle possible |
+| **Tableau** | `ScanBatchTableDialog` | Scanne toutes les factures en parallèle, affiche résultats dans tableau éditable avec checkboxes |
+
+Chaque mode utilise `run_with_progress()` pour ne pas geler l'UI lors de l'OCR Tesseract.
+
+**Mode Tableau (nouveau v2.0) :**
+- Scanne tous les fichiers en `QThread`
+- Affiche un tableau avec colonnes : Fichier, Date, Fournisseur, TTC, Taux TVA, Montant TVA, Validation, Commentaire
+- Colonnes éditables pour correction avant enregistrement
+- Checkboxes pour sélection des lignes à enregistrer
+- Recalcul automatique du Montant TVA si TTC ou taux change
+- Lignes en erreur affichées en rouge
+- Détection de doublons lors de l'enregistrement
+
+**Mode Séquentiel (hérité) :**
+- Traite facture par facture
+- Formulaire de saisie pour chaque facture
+- Boutons : Valider, Passer, Arrêter
+- Dialogue de confirmation pour dates hors période
+- Résumé final avec compteurs
 
 ---
 
@@ -398,9 +465,11 @@ Python standard library utilisée : `sqlite3`, `datetime`, `os`, `sys`, `shutil`
 Dans `constants.py` :
 ```python
 UI_CONFIG = {
-    "DEFAULT_TVA_RATES": ["0%", "5,5%", "10%", "20%", "8,5%"],  # ajouter ici
+    "DEFAULT_TVA_RATES": ["0%", "5,5%", "10%", "20%", "8,5%"],  # Format: "X.XX%"
 }
 ```
+
+**Important :** les taux doivent être au format `"X.XX%"` (avec points décimaux, pas virgules) car ils sont comparés directement dans les combobox Qt.
 
 ### Modifier le thème visuel
 
