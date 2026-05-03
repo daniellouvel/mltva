@@ -141,13 +141,13 @@ QPushButton[objectName="pushButtonEffacer"]:pressed {
 }
 
 /* ── Supprimer ── */
-QPushButton[objectName="pushButtonSuprimer"] {
+QPushButton[objectName="pushButtonSupprimer"] {
     background-color: #E74C3C;
 }
-QPushButton[objectName="pushButtonSuprimer"]:hover {
+QPushButton[objectName="pushButtonSupprimer"]:hover {
     background-color: #CB4335;
 }
-QPushButton[objectName="pushButtonSuprimer"]:pressed {
+QPushButton[objectName="pushButtonSupprimer"]:pressed {
     background-color: #A93226;
 }
 
@@ -341,8 +341,8 @@ QTabBar::tab:hover:!selected {
 /* ── Totaux en bas (lecture seule) ── */
 QLineEdit[objectName="lineEdittotalttc"],
 QLineEdit[objectName="lineEditmontanttva"],
-QLineEdit[objectName="lineEdimontanttotal"],
-QLineEdit[objectName="lineEdittotalmontanttva"] {
+QLineEdit[objectName="lineEditMontantTotal"],
+QLineEdit[objectName="lineEditTotalMontantTVA"] {
     background-color: #D6EAF8;
     border: 1px solid #4A90D9;
     font-weight: bold;

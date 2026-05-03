@@ -40,7 +40,7 @@ class GestionRecettes(GestionBase):
         self.ui.quitterButton.clicked.connect(self.close)
         self.ui.pushButtonValider.clicked.connect(self.add_new_row)
         self.ui.pushButtonModifier.clicked.connect(self.update_row)
-        self.ui.pushButtonSuprimer.clicked.connect(self.delete_row)
+        self.ui.pushButtonSupprimer.clicked.connect(self.delete_row)
         self.ui.pushButtonEffacer.clicked.connect(self.clear_fields)
         self.ui.push_calculettettc.clicked.connect(self.calculate_and_update)
         self.ui.lineEditMontant.textChanged.connect(self.calculate_tva)
@@ -95,22 +95,22 @@ class GestionRecettes(GestionBase):
                 self.ui.tableWidget.setItem(row_number, column_number, QTableWidgetItem(str(data or "")))
             total_montant += float(row_data[5] or 0)
             total_montant_tva += float(row_data[7] or 0)
-        self.ui.lineEdimontanttotal.setText(f"{total_montant:.2f}")
-        self.ui.lineEdittotalmontanttva.setText(f"{total_montant_tva:.2f}")
+        self.ui.lineEditMontantTotal.setText(f"{total_montant:.2f}")
+        self.ui.lineEditTotalMontantTVA.setText(f"{total_montant_tva:.2f}")
 
     def validate_fields(self):
         return validate_fields(
             self.ui.lineEditDate.text(),
             self.ui.comboBoxFournisseur.currentText(),
-            self.ui.comboBoxpayment.currentText(),
+            self.ui.comboBoxPaiement.currentText(),
             self.ui.lineEditMontant.text(),
             self.ui.comboBoxTVA.currentText(),
             self.ui.lineEditMontantTVA.text(),
         )
 
     def configure_payment_combobox(self):
-        self.ui.comboBoxpayment.clear()
-        self.ui.comboBoxpayment.addItems(["null", "chèque", "virement"])
+        self.ui.comboBoxPaiement.clear()
+        self.ui.comboBoxPaiement.addItems(["null", "chèque", "virement"])
 
     def configure_tva_combobox(self):
         self.ui.comboBoxTVA.clear()
@@ -124,12 +124,12 @@ class GestionRecettes(GestionBase):
             date_obj = datetime.strptime(self.ui.lineEditDate.text(), "%d/%m/%Y")
             formatted_date = date_obj.strftime("%Y-%m-%d")
             client = self.ui.comboBoxFournisseur.currentText()
-            paiement = self.ui.comboBoxpayment.currentText()
+            paiement = self.ui.comboBoxPaiement.currentText()
             numero_facture = self.ui.lineEditnfacture.text()
             montant = float(self.ui.lineEditMontant.text())
             tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))
             montant_tva = float(self.ui.lineEditMontantTVA.text())
-            commentaire = self.ui.lineEditComentaire.text()
+            commentaire = self.ui.lineEditCommentaire.text()
             if not self.db_manager.client_exists(client):
                 response = QMessageBox.question(self, "Client non trouvé",
                                                 f"Le client '{client}' n'existe pas. Voulez-vous l'ajouter ?",
@@ -150,12 +150,12 @@ class GestionRecettes(GestionBase):
     def clear_fields(self):
         self.ui.lineEditDate.clear()
         self.ui.comboBoxFournisseur.setCurrentIndex(-1)
-        self.ui.comboBoxpayment.setCurrentIndex(-1)
+        self.ui.comboBoxPaiement.setCurrentIndex(-1)
         self.ui.lineEditnfacture.clear()
         self.ui.lineEditMontant.clear()
         self.ui.comboBoxTVA.setCurrentIndex(0)
         self.ui.lineEditMontantTVA.clear()
-        self.ui.lineEditComentaire.clear()
+        self.ui.lineEditCommentaire.clear()
         self.selected_row_id = None
         self.ui.pushButtonValider.setEnabled(True)
 
@@ -166,14 +166,14 @@ class GestionRecettes(GestionBase):
             self.ui.lineEditDate.setText(self.ui.tableWidget.item(row, 1).text())
             self.ui.comboBoxFournisseur.setCurrentText(self.ui.tableWidget.item(row, 2).text())
             if paiement in ["null", "chèque", "virement"]:
-                self.ui.comboBoxpayment.setCurrentText(paiement)
+                self.ui.comboBoxPaiement.setCurrentText(paiement)
             else:
-                self.ui.comboBoxpayment.setCurrentIndex(-1)
+                self.ui.comboBoxPaiement.setCurrentIndex(-1)
             self.ui.lineEditnfacture.setText(self.ui.tableWidget.item(row, 4).text())
             self.ui.lineEditMontant.setText(self.ui.tableWidget.item(row, 5).text())
             self.ui.comboBoxTVA.setCurrentText(f"{self.ui.tableWidget.item(row, 6).text()}%")
             self.ui.lineEditMontantTVA.setText(self.ui.tableWidget.item(row, 7).text())
-            self.ui.lineEditComentaire.setText(self.ui.tableWidget.item(row, 8).text())
+            self.ui.lineEditCommentaire.setText(self.ui.tableWidget.item(row, 8).text())
             self.ui.pushButtonValider.setEnabled(False)
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")
@@ -186,12 +186,12 @@ class GestionRecettes(GestionBase):
             date_obj = datetime.strptime(self.ui.lineEditDate.text(), "%d/%m/%Y")
             formatted_date = date_obj.strftime("%Y-%m-%d")
             client = self.ui.comboBoxFournisseur.currentText()
-            paiement = self.ui.comboBoxpayment.currentText()
+            paiement = self.ui.comboBoxPaiement.currentText()
             numero_facture = self.ui.lineEditnfacture.text()
             montant = float(self.ui.lineEditMontant.text())
             tva_rate = float(self.ui.comboBoxTVA.currentText().strip('%'))
             montant_tva = float(self.ui.lineEditMontantTVA.text())
-            commentaire = self.ui.lineEditComentaire.text()
+            commentaire = self.ui.lineEditCommentaire.text()
             success = self.db_manager.update_recette(
                 self.selected_row_id, formatted_date, client, paiement, numero_facture, montant, tva_rate, montant_tva, commentaire
             )

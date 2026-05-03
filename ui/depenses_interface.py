@@ -89,7 +89,7 @@ class GestionDepenses(GestionBase):
             "quitterButton": self.close,
             "pushButtonValider": self.add_new_row,
             "pushButtonModifier": self.update_row,
-            "pushButtonSuprimer": self.delete_row,
+            "pushButtonSupprimer": self.delete_row,
             "pushButtonEffacer": self.clear_fields,
         }
         for button_name, callback in button_connections.items():
@@ -189,7 +189,7 @@ class GestionDepenses(GestionBase):
             ttc_text = self.ui.lineEditMontant.text()
             tva_rate_text = self.ui.comboBoxTVA.currentText()
             montant_tva_text = self.ui.lineEditMontantTVA.text()
-            commentaire = self.ui.lineEditComentaire.text()
+            commentaire = self.ui.lineEditCommentaire.text()
             validation = "Oui" if self.ui.checkBoxValidation.isChecked() else "Non"
             if not ttc_text.replace('.', '', 1).isdigit():
                 raise ValueError(ERROR_MESSAGES["INVALID_AMOUNT"])
@@ -299,7 +299,7 @@ class GestionDepenses(GestionBase):
             self.ui.lineEditMontant.clear()
             self.ui.comboBoxTVA.setCurrentIndex(0)
             self.ui.lineEditMontantTVA.clear()
-            self.ui.lineEditComentaire.clear()
+            self.ui.lineEditCommentaire.clear()
             self.ui.checkBoxValidation.setChecked(False)
             self.selected_row_id = None
             self.ui.pushButtonValider.setEnabled(True)
@@ -315,7 +315,7 @@ class GestionDepenses(GestionBase):
             self.ui.comboBoxTVA.setCurrentText(f"{self.ui.tableWidget.item(row, 4).text()}%")
             self.ui.lineEditMontantTVA.setText(self.ui.tableWidget.item(row, 5).text())
             self.ui.checkBoxValidation.setChecked(self.ui.tableWidget.item(row, 6).text() == "Oui")
-            self.ui.lineEditComentaire.setText(self.ui.tableWidget.item(row, 7).text())
+            self.ui.lineEditCommentaire.setText(self.ui.tableWidget.item(row, 7).text())
             self.ui.pushButtonValider.setEnabled(False)
         except Exception as e:
             handle_exception(e, "Erreur lors du chargement de la ligne sélectionnée")

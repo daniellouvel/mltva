@@ -104,7 +104,7 @@ class ScanBatchDialog(QDialog):
         self.btn_passer = QPushButton("Passer")
         self.btn_passer.setObjectName("pushButtonEffacer")
         self.btn_arreter = QPushButton("Arrêter")
-        self.btn_arreter.setObjectName("pushButtonSuprimer")
+        self.btn_arreter.setObjectName("pushButtonSupprimer")
 
         btn_layout.addWidget(self.btn_valider)
         btn_layout.addWidget(self.btn_passer)

@@ -10,7 +10,7 @@ from ui.contacts_interface import ContactsManager
 from constants import DB_CONFIG, ERROR_MESSAGES, UI_CONFIG
 from util import convert_month_to_number
 from pdf_generator import PDFGenerator
-from gestion_forniseur_a_regler import GestionFournisseurARegler
+from gestion_fournisseur_a_regler import GestionFournisseurARegler
 from utils.backup import backup_database
 from ui.restore_dialog import RestoreDialog
 from ui.synthese_interface import SyntheseDialog

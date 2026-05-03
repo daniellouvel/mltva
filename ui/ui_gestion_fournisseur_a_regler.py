@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'gestion_forniseur_a_regler.ui'
+## Form generated from reading UI file 'gestion_fournisseur_a_regler.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.2
 ##

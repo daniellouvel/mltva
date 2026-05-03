@@ -1,7 +1,7 @@
-# gestion_forniseur_a_regler.py
+# gestion_fournisseur_a_regler.py
 
 from PySide6.QtWidgets import QDialog, QTableWidgetItem, QMessageBox, QVBoxLayout, QHBoxLayout, QFileDialog
-from ui.ui_gestion_forniseur_a_regler import Ui_Dialog
+from ui.ui_gestion_fournisseur_a_regler import Ui_Dialog
 from database import DatabaseManager
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
